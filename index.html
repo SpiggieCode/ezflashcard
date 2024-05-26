@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ezflashcard</title>
-	<meta name="author" content="SpiggieCode">
-	<meta name="source" content="https://github.com/SpiggieCode">
+    <title>EzFlashcard</title>
+    <meta name="author" content="SpiggieCode">
+    <meta name="source" content="https://github.com/SpiggieCode">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,6 +76,7 @@
         }
         #toggle-container {
             margin-bottom: 20px;
+            display: none;
         }
         .toggle-option {
             margin-right: 20px;
@@ -130,6 +131,7 @@
             const params = getUrlParameters();
             const container = document.getElementById('flashcards-container');
             const messageDiv = document.getElementById('message');
+            const toggleContainer = document.getElementById('toggle-container');
             const removeCorrectToggle = document.getElementById('remove-correct-toggle');
             const revealAnswerToggle = document.getElementById('reveal-answer-toggle');
 
@@ -138,85 +140,91 @@
                 if (removeCorrectToggle.checked) {
                     revealAnswerToggle.checked = false;
                 }
-                createFlashcards();
+                updateFlashcards();
             });
 
             revealAnswerToggle.addEventListener('change', () => {
                 if (revealAnswerToggle.checked) {
                     removeCorrectToggle.checked = false;
                 }
-                createFlashcards();
+                updateFlashcards();
             });
 
             if (Object.keys(params).length === 0) {
                 messageDiv.style.display = 'block';
+                toggleContainer.style.display = 'none';
                 return;
             } else {
                 messageDiv.style.display = 'none';
+                toggleContainer.style.display = 'block';
             }
 
-            // Clear existing flashcards
-            container.innerHTML = '';
+            // Create flashcards
+            function updateFlashcards() {
+                // Clear existing flashcards
+                container.innerHTML = '';
 
-            const keys = Object.keys(params);
+                keys.forEach(key => {
+                    const answer = params[key];
+                    const flashcard = document.createElement('div');
+                    flashcard.className = 'flashcard';
+                    flashcard.dataset.question = key;
+                    flashcard.dataset.answer = answer;
+                    flashcard.innerText = key;
+
+                    if (!revealAnswerToggle.checked) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.placeholder = 'Type your answer';
+
+                        // Prevent the flashcard click event when interacting with the input field
+                        input.onclick = function(event) {
+                            event.stopPropagation();
+                        };
+
+                        input.onkeydown = function(event) {
+                            if (event.key === 'Enter') {
+                                if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
+                                    if (removeCorrectToggle.checked) {
+                                        flashcard.remove();
+                                    } else {
+                                        flashcard.classList.add('correct');
+                                        flashcard.classList.remove('incorrect');
+                                    }
+                                } else {
+                                    flashcard.classList.add('incorrect');
+                                    flashcard.classList.remove('correct');
+                                    flashcard.innerHTML = `<div>${answer}</div>`;
+                                }
+                            }
+                        };
+
+                        flashcard.appendChild(input);
+
+                        flashcard.onclick = function() {
+                            flashcard.innerText = key;
+                            flashcard.appendChild(input);
+                            input.value = '';
+                            flashcard.classList.remove('correct', 'incorrect');
+                        };
+                    } else {
+                        flashcard.onclick = function() {
+                            flashcard.innerText = flashcard.dataset.answer;
+                        };
+                    }
+
+                    container.appendChild(flashcard);
+                });
+            }
 
             // Shuffle the keys for randomness
+            const keys = Object.keys(params);
             for (let i = keys.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [keys[i], keys[j]] = [keys[j], keys[i]];
             }
 
-            keys.forEach(key => {
-                const answer = params[key];
-                const flashcard = document.createElement('div');
-                flashcard.className = 'flashcard';
-                flashcard.dataset.question = key;
-                flashcard.dataset.answer = answer;
-                flashcard.innerText = key;
-
-                if (!revealAnswerToggle.checked) {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.placeholder = 'Type your answer';
-
-                    // Prevent the flashcard click event when interacting with the input field
-                    input.onclick = function(event) {
-                        event.stopPropagation();
-                    };
-
-                    input.onkeydown = function(event) {
-                        if (event.key === 'Enter') {
-                            if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
-                                if (removeCorrectToggle.checked) {
-                                    flashcard.remove();
-                                } else {
-                                    flashcard.classList.add('correct');
-                                    flashcard.classList.remove('incorrect');
-                                }
-                            } else {
-                                flashcard.classList.add('incorrect');
-                                flashcard.classList.remove('correct');
-                                flashcard.innerHTML = `<div>${answer}</div>`;
-                            }
-                        }
-                    };
-
-                    flashcard.appendChild(input);
-
-                    flashcard.onclick = function() {
-                        flashcard.innerText = key;
-                        flashcard.appendChild(input);
-                        input.value = '';
-                        flashcard.classList.remove('correct', 'incorrect');
-                    };
-                } else {
-                    flashcard.onclick = function() {
-                        flashcard.innerText = flashcard.dataset.answer;
-                    };
-                }
-
-                container.appendChild(flashcard);
-            });
+            updateFlashcards();
         }
 
         // Initialize flashcards on page load
