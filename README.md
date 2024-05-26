@@ -8,3 +8,4 @@ Try me <a href="https://spiggiecode.github.io/ezflashcard/?Dungeons%20and%20Drag
 <br><br>Known issues:
 <br>1. Using the character & in a question or answer will break the cards, avoid using this for now
 <br>2. I need to fix toggle alignment on small screens
+<br>3. Changing a setting resets cards
