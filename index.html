@@ -185,8 +185,11 @@
                         input.onkeydown = function(event) {
                             if (event.key === 'Enter') {
                                 if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
+                                    flashcard.classList.add('correct');
                                     if (removeCorrectToggle.checked) {
-                                        flashcard.remove();
+                                        setTimeout(() => {
+                                            flashcard.remove();
+                                        }, 500); // Delay before removing
                                     } else {
                                         flashcard.classList.add('correct');
                                         flashcard.classList.remove('incorrect');
@@ -210,6 +213,7 @@
                     } else {
                         flashcard.onclick = function() {
                             flashcard.innerText = flashcard.dataset.answer;
+                            flashcard.classList.add('correct');
                         };
                     }
 
