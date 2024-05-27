@@ -21,11 +21,23 @@
   <ul>
     <li><i>clickreveal=true</i></li>
     <ul>
-      <li>Enables clicking on a card to reveal an answer, removes text input</li>
+      <li>Sets card mode to click to flip, classic flip card style</li>
+    </ul>
+    <li><i>textinput=true</i></li>
+    <ul>
+      <li>Sets card mode to click to input answer, users must type the answer and press enter to reveal</li>
+    </ul>
+    <li><i>mixedcards=true</i></li>
+    <ul>
+      <li>Sets the card mode to mixed cards, each card will be assigned a different type at random</li>
     </ul>
     <li><i>removecorrect=true</i></li>
     <ul>
       <li>After entering a correct answer, the card will be removed from the stack</li>
+    </ul>
+    <li><i>hidemenu=true</i></li>
+    <ul>
+      <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to prevent users from changing options</li>
     </ul>
   </ul>
   <li><b>Shuffle button</b></li>
@@ -57,10 +69,11 @@
 
 <h4>Usage Tips</h4>
 <ul>
-  <li>Bookmarks can be used to save and easily access specific sets of flashcards.</li>
-  <li>Always URL encode special characters in your questions and answers, else the symbols &, =, and ? will break the cards.
+  <li>Always URL encode special characters in your questions and answers, else the symbols & and = will break the cards.
+  <li>You may use \n without URL encoding to split questions or answers into multiple lines on the card.
   <li>Programmatically generate URLs for large sets of flashcards to avoid manual entry.</li>
   <li>Share URLs with others as hyperlinks, or run the site in an iframe to avoid displaying lengthy URLs.</li>
+  <li>Bookmarks can be used to save and easily access specific sets of flashcards.</li>
   <li>There is no limit to the number of flashcards you can create.</li>
 </ul>
   </body>
