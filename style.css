@@ -73,7 +73,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
-    width: 100%;
+    width: 95%;
     max-width: 1200px;
     padding-top: 60px; /* Adjust for top bar */
 }
