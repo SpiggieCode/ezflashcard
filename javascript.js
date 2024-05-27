@@ -1,14 +1,16 @@
 // Function to get URL parameters
+// Function to get URL parameters
 function getUrlParameters() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const params = {};
     for (const [key, value] of urlParams.entries()) {
-        params[decodeURIComponent(key)] = decodeURIComponent(value);
+        params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\\n/g, '\n'));
     }
     return params;
 }
 
+// Function to create flashcards
 // Function to create flashcards
 function createFlashcards() {
     const params = getUrlParameters();
@@ -45,14 +47,15 @@ function createFlashcards() {
 
     keys.forEach(key => {
         if (key === 'clickreveal' || key === 'removecorrect') return; // Skip special parameters
+        const question = key.replace(/\\n/g, '\n');
         const answer = params[key];
         const flashcard = document.createElement('div');
         flashcard.className = 'flashcard';
-        flashcard.dataset.question = key;
+        flashcard.dataset.question = question;
         flashcard.dataset.answer = answer;
         flashcard.dataset.showingAnswer = 'false';
         flashcard.dataset.attempted = 'false';
-        flashcard.innerText = key;
+        flashcard.innerHTML = question.replace(/\n/g, '<br>');
 
         if (!revealAnswerToggle.checked) {
             const input = document.createElement('input');
@@ -69,7 +72,7 @@ function createFlashcards() {
                     if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
                         flashcard.classList.add('correct');
                         flashcard.dataset.attempted = 'true';
-                        flashcard.innerHTML = `<div>${answer}</div>`;
+                        flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                         flashcard.classList.add('correct');
                         flashcard.dataset.showingAnswer = 'true';
                         if (removeCorrectToggle.checked) {
@@ -80,7 +83,7 @@ function createFlashcards() {
                     } else {
                         flashcard.classList.add('incorrect');
                         flashcard.classList.remove('correct');
-                        flashcard.innerHTML = `<div>${answer}</div>`;
+                        flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                         flashcard.dataset.showingAnswer = 'true';
                         flashcard.dataset.attempted = 'true';
                     }
@@ -91,13 +94,13 @@ function createFlashcards() {
 
             flashcard.onclick = function() {
                 if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.innerText = key;
+                    flashcard.innerHTML = question.replace(/\n/g, '<br>');
                     flashcard.appendChild(input);
                     input.value = '';
                     flashcard.classList.remove('correct', 'incorrect');
                     flashcard.dataset.showingAnswer = 'false';
                 } else if (flashcard.dataset.attempted === 'true' || revealAnswerToggle.checked) {
-                    flashcard.innerText = flashcard.dataset.answer;
+                    flashcard.innerHTML = flashcard.dataset.answer.replace(/\n/g, '<br>');
                     if (flashcard.classList.contains('incorrect')) {
                         flashcard.classList.add('incorrect');
                     } else {
@@ -109,11 +112,11 @@ function createFlashcards() {
         } else {
             flashcard.onclick = function() {
                 if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.innerText = key;
+                    flashcard.innerHTML = question.replace(/\n/g, '<br>');
                     flashcard.classList.remove('correct', 'incorrect');
                     flashcard.dataset.showingAnswer = 'false';
                 } else {
-                    flashcard.innerText = flashcard.dataset.answer;
+                    flashcard.innerHTML = flashcard.dataset.answer.replace(/\n/g, '<br>');
                     flashcard.classList.add('correct');
                     flashcard.dataset.showingAnswer = 'true';
                     if (removeCorrectToggle.checked) {
@@ -139,7 +142,6 @@ function shuffleFlashcards() {
     }
 }
 
-// Function to update existing flashcards based on toggles
 // Function to update existing flashcards based on toggles
 function updateFlashcards() {
     const container = document.getElementById('flashcards-container');
@@ -170,7 +172,7 @@ function updateFlashcards() {
                             if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
                                 flashcard.classList.add('correct');
                                 flashcard.dataset.attempted = 'true';
-                                flashcard.innerHTML = `<div>${answer}</div>`;
+                                flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                                 flashcard.dataset.showingAnswer = 'true';
                                 if (removeCorrectToggle.checked) {
                                     setTimeout(() => {
@@ -180,7 +182,7 @@ function updateFlashcards() {
                             } else {
                                 flashcard.classList.add('incorrect');
                                 flashcard.classList.remove('correct');
-                                flashcard.innerHTML = `<div>${answer}</div>`;
+                                flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                                 flashcard.dataset.showingAnswer = 'true';
                                 flashcard.dataset.attempted = 'true';
                             }
@@ -193,7 +195,7 @@ function updateFlashcards() {
 
             flashcard.onclick = function() {
                 if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.innerText = key;
+                    flashcard.innerHTML = key.replace(/\n/g, '<br>');
                     let input = flashcard.querySelector('input');
                     if (!input) {
                         input = document.createElement('input');
@@ -209,7 +211,7 @@ function updateFlashcards() {
                                 if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
                                     flashcard.classList.add('correct');
                                     flashcard.dataset.attempted = 'true';
-                                    flashcard.innerHTML = `<div>${answer}</div>`;
+                                    flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                                     flashcard.dataset.showingAnswer = 'true';
                                     if (removeCorrectToggle.checked) {
                                         setTimeout(() => {
@@ -219,7 +221,7 @@ function updateFlashcards() {
                                 } else {
                                     flashcard.classList.add('incorrect');
                                     flashcard.classList.remove('correct');
-                                    flashcard.innerHTML = `<div>${answer}</div>`;
+                                    flashcard.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
                                     flashcard.dataset.showingAnswer = 'true';
                                     flashcard.dataset.attempted = 'true';
                                 }
@@ -232,7 +234,7 @@ function updateFlashcards() {
                     flashcard.classList.remove('correct', 'incorrect');
                     flashcard.dataset.showingAnswer = 'false';
                 } else if (flashcard.dataset.attempted === 'true' || revealAnswerToggle.checked) {
-                    flashcard.innerText = flashcard.dataset.answer;
+                    flashcard.innerHTML = flashcard.dataset.answer.replace(/\n/g, '<br>');
                     if (flashcard.classList.contains('incorrect')) {
                         flashcard.classList.add('incorrect');
                     } else {
@@ -247,11 +249,11 @@ function updateFlashcards() {
 
             flashcard.onclick = function() {
                 if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.innerText = key;
+                    flashcard.innerHTML = key.replace(/\n/g, '<br>');
                     flashcard.classList.remove('correct', 'incorrect');
                     flashcard.dataset.showingAnswer = 'false';
                 } else {
-                    flashcard.innerText = flashcard.dataset.answer;
+                    flashcard.innerHTML = flashcard.dataset.answer.replace(/\n/g, '<br>');
                     flashcard.classList.add('correct');
                     flashcard.dataset.showingAnswer = 'true';
                     if (removeCorrectToggle.checked) {
@@ -264,7 +266,6 @@ function updateFlashcards() {
         }
     });
 }
-
 
 // Add event listener to the reveal answer toggle
 document.getElementById('reveal-answer-toggle').addEventListener('change', function() {
