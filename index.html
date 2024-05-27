@@ -18,11 +18,19 @@
     </div>
 </div>
 <div id="toggle-container">
+    <h5 class="toggle-option">Card mode</h5>
     <label class="toggle-option">
-        <input type="checkbox" id="reveal-answer-toggle"> Click to reveal mode
+        <input type="radio" name="card-type" id="click-reveal-toggle" checked> Click to flip
     </label>
     <label class="toggle-option">
-        <input type="checkbox" id="remove-correct-toggle"> Remove correct answers
+        <input type="radio" name="card-type" id="text-input-toggle"> Input answer
+    </label>
+    <label class="toggle-option">
+        <input type="radio" name="card-type" id="mixed-card-toggle"> Mixed cards
+    </label>
+    <br><h5 class="toggle-option">Options</h5>
+    <label class="toggle-option">
+        <input type="checkbox" id="remove-correct-toggle"> Hide correct
     </label>
 </div>
 
