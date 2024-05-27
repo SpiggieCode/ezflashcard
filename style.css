@@ -104,6 +104,7 @@ body {
 
 .flashcard .front, .flashcard .back {
     backface-visibility: hidden;
+    transform: rotateX(0deg);
 }
 
 .flashcard .back {
