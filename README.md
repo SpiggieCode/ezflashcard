@@ -82,3 +82,7 @@
 </ul>
   </body>
 </html>
+
+<hr>
+
+<p>If you are a ChatGPT subsciber and have access to the GPT marketplace, you can use my <a href="https://chatgpt.com/g/g-OP3fFIA5g-ezflashcard-helper">custom GPT to generate flashcards.</a></p>
