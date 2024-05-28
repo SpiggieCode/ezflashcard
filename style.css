@@ -225,6 +225,7 @@ body.dark-mode .bar-button,
 body.dark-mode #score-container {
     background-color: #333;
     color: white;
+    border: 1px solid grey;
 }
 
 body.dark-mode .flashcard {
