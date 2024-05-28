@@ -27,6 +27,11 @@
     <ul>
       <li>Sets card mode to click to input answer, users must type the answer and press enter to reveal</li>
     </ul>
+    <li><i>scoremode=true</i>
+    <ul>
+        <li>If textinput=true this will enable a score tracker, cards will be removed from the stack when answered and correct answers will increase score</li>
+    </ul>
+    </li>
     <li><i>mixedcards=true</i></li>
     <ul>
       <li>Sets the card mode to mixed cards, each card will be assigned a different type at random</li>
@@ -40,10 +45,6 @@
       <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to prevent users from changing options</li>
     </ul>
   </ul>
-  <li><b>Shuffle button</b></li>
-  <ul>
-    <li>Clicking shuffle at the top of the page will reorder all cards currently on the page</li>
-  </ul>
 </ul>
 
 <hr>
@@ -56,11 +57,14 @@
   <li>
     <b>Prepare your content</b> <ul>Construct a URL with your flashcard data using the format key=value, where the key is the question and the value is the answer. Separate multiple flashcards with an ampersand (&).</ul>
   </li>
+    <li>
+        <b>Add optional parameters</b> <ul>Add optional parameters, such as setting the card mode and configuring settings to be enabled on launch.</ul>
+    </li>
   <li>
-    <b>Open the URL</b> <ul>Paste the constructed URL into your browser's address bar and hit enter. For example <a href="https://spiggiecode.github.io/ezflashcard/?What%20is%204%2B4%3F=8&Who%20created%20Dungeons%20%26%20Dragons%3F=Gary%20Gygax&What%20is%20the%20meaning%20to%20life%2C%20the%20universe%2C%20and%20everything%3F=42&clickreveal=true">this URL</a>.</li></ul>
+    <b>Open the URL</b> <ul>Paste the constructed URL into your browser's address bar and hit enter. For example <a href="https://spiggiecode.github.io/ezflashcard/?What%20is%204%2B4%3F=8&Who%20created%20Dungeons%20%26%20Dragons%3F=Gary%20Gygax&What%20is%20the%20meaning%20to%20life%2C%20the%20universe%2C%20and%20everything%3F=42&clickreveal=true">this URL</a>.</ul>
   </li>
   <li>
-    <b>Interact with your flashcards</b> <ul>You can click on each flashcard to reveal the answer if the <i>clickreveal=true</i> flag is enabled. Otherwise, type your answer in the input box and hit enter.</ul>
+    <b>Interact with your flashcards</b> <ul>Click cards to reveal the answer, or type your answer and press enter depending on your configuration.</ul>
   </li>
 
 </ol>
