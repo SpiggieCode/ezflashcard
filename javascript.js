@@ -25,12 +25,16 @@ function handleFlashcardInput(event, flashcard, answer, removeCorrectToggle) {
     flashcard.classList.add('flip');
 
     setTimeout(() => {
-        flashcard.classList.add(isCorrect ? 'correct' : 'incorrect');
+        setTimeout(() => {
+            flashcard.classList.add(isCorrect ? 'correct' : 'incorrect'); // Trigger background color change
+        }, 100); // Short delay for background color fade-in
         flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
         flashcard.dataset.showingAnswer = 'true';
         if (isCorrect && removeCorrectToggle.checked) {
-            flashcard.classList.add('fade-out'); // Add fade-out class
-            setTimeout(() => flashcard.remove(), 500); // Remove flashcard after 1 second (duration of fade-out)
+            setTimeout(() => {
+                flashcard.classList.add('fade-out'); // Add fade-out class
+                setTimeout(() => flashcard.remove(), 600); // Remove flashcard after 1 second (duration of color fade in + color fade out)
+            }, 500); // Wait for 1 second before starting the fade-out
         }
     }, 600);
 
@@ -83,7 +87,7 @@ function toggleFlashcard(flashcard, question, answer, removeCorrectToggle, input
             }
             flashcard.dataset.showingAnswer = 'false';
             flashcard.dataset.attempted = 'false';
-        }, 600); // Wait for the flip animation to complete
+        }, 500); // Wait for the flip animation to complete
     } else {
         if (flashcard.dataset.attempted === 'false' && input) {
             // Prevent flipping if the text input card has not been attempted
@@ -92,13 +96,17 @@ function toggleFlashcard(flashcard, question, answer, removeCorrectToggle, input
         flashcard.classList.add('flip');
         setTimeout(() => {
             flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
-            flashcard.classList.add('correct');
+            setTimeout(() => {
+                flashcard.classList.add('correct'); // Trigger background color change
+            }, 1); // Short delay for background color fade-in
             flashcard.dataset.showingAnswer = 'true';
             if (removeCorrectToggle && removeCorrectToggle.checked) {
-                flashcard.classList.add('fade-out'); // Add fade-out class
-                setTimeout(() => flashcard.remove(), 1000); // Remove flashcard after 1 second (duration of fade-out)
+                setTimeout(() => {
+                    flashcard.classList.add('fade-out'); // Add fade-out class
+                    setTimeout(() => flashcard.remove(), 500); // Remove flashcard after 1 second (duration of fade-out)
+                }, 1200); // Wait for 1 second before starting the fade-out
             }
-        }, 600); // Wait for the flip animation to complete
+        }, 500); // Wait for the flip animation to complete
     }
 }
 
@@ -209,10 +217,33 @@ function updateFlashcards() {
     });
 }
 
+let isTransitioning = false;
+
 // Function to toggle the visibility of the settings menu
 function toggleMenu() {
     const toggleContainer = document.getElementById('toggle-container');
-    toggleContainer.style.display = (toggleContainer.style.display === 'none' || toggleContainer.style.display === '') ? 'flex' : 'none';
+
+    // Check if a transition is already in progress
+    if (isTransitioning) return;
+
+    // Set the transitioning flag
+    isTransitioning = true;
+
+    if (toggleContainer.classList.contains('show')) {
+        toggleContainer.classList.remove('show');
+        setTimeout(() => {
+            toggleContainer.style.visibility = 'hidden';
+            // Clear the transitioning flag after the transition
+            isTransitioning = false;
+        }, 101); // Match the transition duration
+    } else {
+        toggleContainer.style.visibility = 'visible';
+        toggleContainer.classList.add('show');
+        setTimeout(() => {
+            // Clear the transitioning flag after the transition
+            isTransitioning = false;
+        }, 101); // Match the transition duration
+    }
 }
 
 // Initialize flashcards on page load
