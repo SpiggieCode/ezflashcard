@@ -1,3 +1,15 @@
+let isTransitioning = false;
+let score = 0;
+let scoreTrackerEnabled = false;
+
+// Function to update the score display
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    if (scoreElement) {
+        scoreElement.textContent = score;
+    }
+}
+
 // Function to get URL parameters
 function getUrlParameters() {
     const params = {};
@@ -12,6 +24,10 @@ function setToggleState(params, toggleElements) {
     toggleElements.forEach(({ element, paramName }) => {
         if (params[paramName] === 'true' && !element.dataset.userSet) {
             element.checked = true;
+            if (paramName === 'showscoretracker') {
+                scoreTrackerEnabled = true;
+                document.getElementById('score-container').style.visibility = 'visible';
+            }
         }
     });
 }
@@ -30,11 +46,22 @@ function handleFlashcardInput(event, flashcard, answer, removeCorrectToggle) {
         }, 100); // Short delay for background color fade-in
         flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
         flashcard.dataset.showingAnswer = 'true';
-        if (isCorrect && removeCorrectToggle.checked) {
+
+        if (scoreTrackerEnabled) {
+            if (isCorrect) {
+                score++; // Increment score if the answer is correct
+                updateScore(); // Update the score display
+            }
+            // Remove flashcard regardless of correctness in score tracker mode
             setTimeout(() => {
                 flashcard.classList.add('fade-out'); // Add fade-out class
-                setTimeout(() => flashcard.remove(), 600); // Remove flashcard after 1 second (duration of color fade in + color fade out)
-            }, 500); // Wait for 1 second before starting the fade-out
+                setTimeout(() => flashcard.remove(), 600); // Remove flashcard after fade-out
+            }, 500); // Wait before starting the fade-out
+        } else if (isCorrect && removeCorrectToggle.checked) {
+            setTimeout(() => {
+                flashcard.classList.add('fade-out'); // Add fade-out class
+                setTimeout(() => flashcard.remove(), 600); // Remove flashcard after fade-out
+            }, 500); // Wait before starting the fade-out
         }
     }, 600);
 
@@ -103,8 +130,8 @@ function toggleFlashcard(flashcard, question, answer, removeCorrectToggle, input
             if (removeCorrectToggle && removeCorrectToggle.checked) {
                 setTimeout(() => {
                     flashcard.classList.add('fade-out'); // Add fade-out class
-                    setTimeout(() => flashcard.remove(), 500); // Remove flashcard after 1 second (duration of fade-out)
-                }, 1200); // Wait for 1 second before starting the fade-out
+                    setTimeout(() => flashcard.remove(), 500); // Remove flashcard after fade-out
+                }, 1200); // Wait before starting the fade-out
             }
         }, 500); // Wait for the flip animation to complete
     }
@@ -134,13 +161,30 @@ function createFlashcards() {
     const removeCorrectToggle = document.getElementById('remove-correct-toggle');
     const mixedCardToggle = document.getElementById('mixed-card-toggle');
     const textInputToggle = document.getElementById('text-input-toggle');
+    const scoreTrackerToggle = document.getElementById('show-score-tracker');
 
     setToggleState(params, [
         { element: document.getElementById('click-reveal-toggle'), paramName: 'clickreveal' },
         { element: textInputToggle, paramName: 'textinput' },
         { element: removeCorrectToggle, paramName: 'removecorrect' },
-        { element: mixedCardToggle, paramName: 'mixedcards' }
+        { element: mixedCardToggle, paramName: 'mixedcards' },
+        { element: scoreTrackerToggle, paramName: 'scoretracker' }
     ]);
+
+    if (params.textinput === 'true') {
+        scoreTrackerToggle.disabled = false;
+        if (params.scoretracker === 'true') {
+            scoreTrackerEnabled = true;
+            document.getElementById('score-container').style.visibility = 'visible';
+        } else {
+            scoreTrackerEnabled = false;
+            document.getElementById('score-container').style.visibility = 'hidden';
+        }
+    } else {
+        scoreTrackerToggle.disabled = true;
+        scoreTrackerEnabled = false;
+        document.getElementById('score-container').style.visibility = 'hidden';
+    }
 
     if (Object.keys(params).length === 0) {
         messageDiv.style.display = 'block';
@@ -151,7 +195,7 @@ function createFlashcards() {
 
     container.innerHTML = '';
 
-    const keys = Object.keys(params).filter(key => !['clickreveal', 'textinput', 'removecorrect', 'mixedcards', 'hidemenu'].includes(key));
+    const keys = Object.keys(params).filter(key => !['clickreveal', 'textinput', 'removecorrect', 'mixedcards', 'hidemenu', 'scoretracker'].includes(key));
     keys.sort(() => Math.random() - 0.5); // Shuffle keys
 
     keys.forEach(key => {
@@ -183,7 +227,14 @@ function updateFlashcards() {
     const removeCorrectToggle = document.getElementById('remove-correct-toggle');
     const mixedCardToggle = document.getElementById('mixed-card-toggle');
     const textInputToggle = document.getElementById('text-input-toggle');
+    const scoreTrackerToggle = document.getElementById('show-score-tracker');
     const mixedCardsEnabled = mixedCardToggle.checked;
+
+    const textInputEnabled = textInputToggle.checked;
+    scoreTrackerEnabled = textInputEnabled && scoreTrackerToggle.checked;
+
+    document.getElementById('score-container').style.visibility = scoreTrackerEnabled ? 'visible' : 'hidden';
+    scoreTrackerToggle.disabled = !textInputEnabled; // Disable score tracker toggle if text input mode is not enabled
 
     flashcards.forEach(flashcard => {
         const { question, answer } = flashcard.dataset;
@@ -216,8 +267,6 @@ function updateFlashcards() {
         }
     });
 }
-
-let isTransitioning = false;
 
 // Function to toggle the visibility of the settings menu
 function toggleMenu() {
@@ -262,7 +311,7 @@ document.getElementById('revert-button').addEventListener('click', () => {
 // Add event listeners
 document.getElementById('menu-button').addEventListener('click', toggleMenu);
 document.getElementById('shuffle-button').addEventListener('click', shuffleFlashcards);
-['click-reveal-toggle', 'text-input-toggle', 'remove-correct-toggle', 'mixed-card-toggle'].forEach(id => {
+['click-reveal-toggle', 'text-input-toggle', 'remove-correct-toggle', 'mixed-card-toggle', 'show-score-tracker'].forEach(id => {
     document.getElementById(id).addEventListener('change', function() {
         this.dataset.userSet = true;
         updateFlashcards();
@@ -278,4 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleFlashcard(card, question, answer, document.getElementById('remove-correct-toggle'), input);
         });
     });
+});
+
+document.getElementById('text-input-toggle').addEventListener('change', function() {
+    this.dataset.userSet = true;
+    updateFlashcards();
 });

@@ -11,7 +11,6 @@ body {
 #topbar {
     width: 100%;
     color: white;
-    padding: 25px 0 5px 25px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -23,8 +22,10 @@ body {
 }
 
 #button-container {
+    float: left;
     display: flex;
     align-items: center;
+    padding-left: 25px;
 }
 
 #menu-button {
@@ -33,7 +34,7 @@ body {
     background-color: #007bff;
     cursor: pointer;
     padding: 10px;
-    margin-left: 10px;
+    margin-right: 10px;
     border: none;
     border-radius: 50px;
     font-size: 15px;
@@ -44,7 +45,7 @@ body {
 .bar-button {
     height: 50px;
     width: 50px;
-    margin-left: 10px;
+    margin-right: 10px;
     cursor: pointer;
     padding: 10px;
     border: none;
@@ -57,6 +58,17 @@ body {
 
 .bar-button:hover {
     background-color: #0056b3;
+}
+
+#score-container {
+    margin: 28px 25px 25px auto;
+    width: auto;
+    padding: 10px;
+    font-size: 18px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    visibility: hidden;
 }
 
 .no-pointer-events {
@@ -213,6 +225,15 @@ body {
         padding-top: 70px;
     }
 
+    #button-container {
+        padding: 5px 0px 5px 15px;
+    }
+
+    #score-container {
+        margin: 16px 15px 15px auto;
+    }
+
+
     .flashcard {
         width: 90%; /* Take up all available width */
         height: 150px; /* Adjust height if needed */
@@ -221,9 +242,5 @@ body {
     #message {
         padding: 20px;
         margin-top: 20px;
-    }
-
-    #topbar {
-        padding: 10px 0 5px 10px;
     }
 }
