@@ -114,6 +114,12 @@ body {
     transform: rotateY(180deg);
 }
 
+.flashcard.fade-out {
+    opacity: 0;
+    transition: opacity 500ms ease-out;
+}
+
+
 .flashcard .front, .flashcard .back {
     backface-visibility: hidden;
     transform: rotateX(0deg);

@@ -29,7 +29,8 @@ function handleFlashcardInput(event, flashcard, answer, removeCorrectToggle) {
         flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
         flashcard.dataset.showingAnswer = 'true';
         if (isCorrect && removeCorrectToggle.checked) {
-            setTimeout(() => flashcard.remove(), 1000);
+            flashcard.classList.add('fade-out'); // Add fade-out class
+            setTimeout(() => flashcard.remove(), 500); // Remove flashcard after 1 second (duration of fade-out)
         }
     }, 600);
 
@@ -94,7 +95,8 @@ function toggleFlashcard(flashcard, question, answer, removeCorrectToggle, input
             flashcard.classList.add('correct');
             flashcard.dataset.showingAnswer = 'true';
             if (removeCorrectToggle && removeCorrectToggle.checked) {
-                setTimeout(() => flashcard.remove(), 1000);
+                flashcard.classList.add('fade-out'); // Add fade-out class
+                setTimeout(() => flashcard.remove(), 1000); // Remove flashcard after 1 second (duration of fade-out)
             }
         }, 600); // Wait for the flip animation to complete
     }
