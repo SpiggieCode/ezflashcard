@@ -44,6 +44,10 @@
     <ul>
       <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to prevent users from changing options</li>
     </ul>
+    <li><i>darkmode=true</i></li>
+    <ul>
+        <li>Applies a dark theme to the application</li>
+    </ul>
   </ul>
 </ul>
 
