@@ -29,14 +29,14 @@ body {
 
 #menu-button {
     cursor: pointer;
-    padding: 0px 20px 0px 10px;
+    padding: 0 20px 0 10px;
     border: none;
     background-color: transparent;
     font-size: 24px;
     color: black; /* Adjusted text color for better visibility */
 }
 
-#shuffle-button {
+.bar-button {
     cursor: pointer;
     padding: 10px;
     border: none;
@@ -46,8 +46,12 @@ body {
     border-radius: 4px;
 }
 
-#shuffle-button:hover {
+.bar-button:hover {
     background-color: #0056b3;
+}
+
+#revert-button {
+    margin-left: 10px;
 }
 
 #toggle-container {
@@ -58,7 +62,7 @@ body {
     border-right: 1px solid #ccc;
     background-color: white;
     padding-top: 62px;
-    min-width: 200px;
+    min-width: 230px;
     width: auto;
     height: 100%;
     flex-direction: column;

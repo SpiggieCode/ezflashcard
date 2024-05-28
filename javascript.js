@@ -1,64 +1,50 @@
 // Function to get URL parameters
 function getUrlParameters() {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
     const params = {};
-    for (const [key, value] of urlParams.entries()) {
+    new URLSearchParams(window.location.search).forEach((value, key) => {
         params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\\n/g, '\n'));
-    }
+    });
     return params;
 }
 
-// Function to set toggles based on URL parameters
-function setToggleState(params, toggleElement, paramName) {
-    if (params[paramName] === 'true' && !toggleElement.dataset.userSet) {
-        toggleElement.checked = true;
-    }
+// Function to set toggle states based on URL parameters
+function setToggleState(params, toggleElements) {
+    toggleElements.forEach(({ element, paramName }) => {
+        if (params[paramName] === 'true' && !element.dataset.userSet) {
+            element.checked = true;
+        }
+    });
 }
 
 // Function to handle flashcard input
 function handleFlashcardInput(event, flashcard, answer, removeCorrectToggle) {
+    if (event.key !== 'Enter') return;
+
     const input = event.target;
-    if (event.key === 'Enter') {
-        if (input.value.trim().toLowerCase() === answer.trim().toLowerCase()) {
-            flashcard.classList.add('flip');
-            setTimeout(() => {
-                flashcard.classList.add('correct');
-                flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
-                flashcard.dataset.showingAnswer = 'true';
-                if (removeCorrectToggle.checked) {
-                    setTimeout(() => {
-                        flashcard.remove();
-                    }, 1000);
-                }
-            }, 600); // Wait for the flip animation to complete
-        } else {
-            flashcard.classList.add('flip');
-            setTimeout(() => {
-                flashcard.classList.add('incorrect');
-                flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
-                flashcard.dataset.showingAnswer = 'true';
-            }, 600); // Wait for the flip animation to complete
+    const isCorrect = input.value.trim().toLowerCase() === answer.trim().toLowerCase();
+    flashcard.classList.add('flip');
+
+    setTimeout(() => {
+        flashcard.classList.add(isCorrect ? 'correct' : 'incorrect');
+        flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
+        flashcard.dataset.showingAnswer = 'true';
+        if (isCorrect && removeCorrectToggle.checked) {
+            setTimeout(() => flashcard.remove(), 1000);
         }
-        flashcard.dataset.attempted = 'true';
-    }
+    }, 600); // Wait for the flip animation to complete
+
+    flashcard.dataset.attempted = 'true';
 }
 
-
-// Function to create a flashcard element
+// Function to create flashcard element
 function createFlashcardElement(question, answer, cardType, removeCorrectToggle) {
     const flashcard = document.createElement('div');
     flashcard.className = 'flashcard';
-    flashcard.dataset.question = question;
-    flashcard.dataset.answer = answer;
-    flashcard.dataset.showingAnswer = 'false';
-    flashcard.dataset.attempted = 'false';
+    Object.assign(flashcard.dataset, { question, answer, showingAnswer: 'false', attempted: 'false' });
 
     const front = document.createElement('div');
     front.className = 'front';
-    const questionDiv = document.createElement('div');
-    questionDiv.innerHTML = question.replace(/\n/g, '<br>');
-    front.appendChild(questionDiv);
+    front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
 
     const back = document.createElement('div');
     back.className = 'back';
@@ -74,70 +60,58 @@ function createFlashcardElement(question, answer, cardType, removeCorrectToggle)
         input.id = 'answer-field';
         input.onclick = event => event.stopPropagation();
         input.onkeydown = event => handleFlashcardInput(event, flashcard, answer, removeCorrectToggle);
-
         front.appendChild(input);
 
-        flashcard.onclick = () => {
-            if (flashcard.dataset.showingAnswer === 'true') {
-                flashcard.classList.remove('correct', 'incorrect');
-                flashcard.classList.remove('flip');
-                setTimeout(() => {
-                    front.innerHTML = '';
-                    front.appendChild(questionDiv);
-                    front.appendChild(input);
-                    input.value = '';
-                    flashcard.dataset.showingAnswer = 'false';
-                    flashcard.dataset.attempted = 'false';
-                }, 600); // Wait for the flip animation to complete
-            } else if (flashcard.dataset.attempted === 'true' || cardType === 'clickReveal') {
-                flashcard.classList.add('flip');
-                setTimeout(() => {
-                    back.innerHTML = answer.replace(/\n/g, '<br>');
-                    flashcard.classList.add(flashcard.classList.contains('incorrect') ? 'incorrect' : 'correct');
-                    flashcard.dataset.showingAnswer = 'true';
-                }, 600); // Wait for the flip animation to complete
-            }
-        };
-    } else if (cardType === 'clickReveal') {
-        flashcard.onclick = () => {
-            if (flashcard.dataset.showingAnswer === 'true') {
-                flashcard.classList.remove('correct', 'incorrect');
-                flashcard.classList.remove('flip');
-                setTimeout(() => {
-                    front.innerHTML = question.replace(/\n/g, '<br>');
-                    flashcard.dataset.showingAnswer = 'false';
-                    flashcard.dataset.attempted = 'false';
-                }, 600); // Wait for the flip animation to complete
-            } else {
-                flashcard.classList.add('flip');
-                setTimeout(() => {
-                    back.innerHTML = answer.replace(/\n/g, '<br>');
-                    flashcard.classList.add('correct');
-                    flashcard.dataset.showingAnswer = 'true';
-                    if (removeCorrectToggle.checked) {
-                        setTimeout(() => {
-                            flashcard.remove();
-                        }, 1000);
-                    }
-                }, 600); // Wait for the flip animation to complete
-            }
-        };
+        flashcard.onclick = () => resetFlashcard(flashcard, question, answer, input);
+    } else {
+        flashcard.onclick = () => toggleFlashcard(flashcard, question, answer, removeCorrectToggle);
     }
 
     return flashcard;
 }
 
-// Function to determine the card type
-function getCardType(mixedCardsEnabled) {
-    const clickRevealToggle = document.getElementById('click-reveal-toggle');
-    const textInputToggle = document.getElementById('text-input-toggle');
+// Function to reset flashcard
+function resetFlashcard(flashcard, question, answer, input) {
+    if (flashcard.dataset.showingAnswer === 'true') {
+        flashcard.classList.remove('correct', 'incorrect', 'flip');
+        setTimeout(() => {
+            flashcard.querySelector('.front').innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
+            flashcard.querySelector('.front').appendChild(input);
+            input.value = '';
+            flashcard.dataset.showingAnswer = 'false';
+            flashcard.dataset.attempted = 'false';
+        }, 600); // Wait for the flip animation to complete
+    }
+}
+
+// Function to toggle flashcard
+function toggleFlashcard(flashcard, question, answer, removeCorrectToggle) {
+    if (flashcard.dataset.showingAnswer === 'true') {
+        flashcard.classList.remove('correct', 'incorrect', 'flip');
+        setTimeout(() => {
+            flashcard.querySelector('.front').innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
+            flashcard.dataset.showingAnswer = 'false';
+            flashcard.dataset.attempted = 'false';
+        }, 600); // Wait for the flip animation to complete
+    } else {
+        flashcard.classList.add('flip');
+        setTimeout(() => {
+            flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
+            flashcard.classList.add('correct');
+            flashcard.dataset.showingAnswer = 'true';
+            if (removeCorrectToggle.checked) {
+                setTimeout(() => flashcard.remove(), 1000);
+            }
+        }, 600); // Wait for the flip animation to complete
+    }
+}
+
+// Function to determine card type
+function getCardType(mixedCardsEnabled, textInputToggle) {
     if (mixedCardsEnabled) {
         return Math.random() < 0.5 ? 'textInput' : 'clickReveal';
-    } else if (textInputToggle.checked) {
-        return 'textInput';
-    } else {
-        return 'clickReveal';
     }
+    return textInputToggle.checked ? 'textInput' : 'clickReveal';
 }
 
 // Function to create flashcards
@@ -147,11 +121,14 @@ function createFlashcards() {
     const messageDiv = document.getElementById('message');
     const removeCorrectToggle = document.getElementById('remove-correct-toggle');
     const mixedCardToggle = document.getElementById('mixed-card-toggle');
+    const textInputToggle = document.getElementById('text-input-toggle');
 
-    setToggleState(params, document.getElementById('click-reveal-toggle'), 'clickreveal');
-    setToggleState(params, document.getElementById('text-input-toggle'), 'textinput');
-    setToggleState(params, removeCorrectToggle, 'removecorrect');
-    setToggleState(params, mixedCardToggle, 'mixedcards');
+    setToggleState(params, [
+        { element: document.getElementById('click-reveal-toggle'), paramName: 'clickreveal' },
+        { element: textInputToggle, paramName: 'textinput' },
+        { element: removeCorrectToggle, paramName: 'removecorrect' },
+        { element: mixedCardToggle, paramName: 'mixedcards' }
+    ]);
 
     if (Object.keys(params).length === 0) {
         messageDiv.style.display = 'block';
@@ -162,23 +139,20 @@ function createFlashcards() {
 
     container.innerHTML = '';
 
-    const keys = Object.keys(params).filter(key => key !== 'clickreveal' && key !== 'textinput' && key !== 'removecorrect' && key !== 'mixedcards' && key !== 'hidemenu');
+    const keys = Object.keys(params).filter(key => !['clickreveal', 'textinput', 'removecorrect', 'mixedcards', 'hidemenu'].includes(key));
     keys.sort(() => Math.random() - 0.5); // Shuffle keys
-
-    const mixedCardsEnabled = mixedCardToggle.checked;
 
     keys.forEach(key => {
         const question = key.replace(/\\n/g, '\n');
         const answer = params[key];
-        const cardType = getCardType(mixedCardsEnabled);
+        const cardType = getCardType(mixedCardToggle.checked, textInputToggle);
         const flashcard = createFlashcardElement(question, answer, cardType, removeCorrectToggle);
         container.appendChild(flashcard);
     });
 
     // Handle hidemenu parameter
-    const menuButton = document.getElementById('menu-button');
     if (params.hidemenu === 'true') {
-        menuButton.style.display = 'none';
+        document.getElementById('menu-button').style.display = 'none';
     }
 }
 
@@ -186,8 +160,8 @@ function createFlashcards() {
 function shuffleFlashcards() {
     const container = document.getElementById('flashcards-container');
     const flashcards = Array.from(container.children);
-    flashcards.sort(() => Math.random() - 0.5); // Shuffle flashcards
-    flashcards.forEach(flashcard => container.appendChild(flashcard)); // Re-append shuffled flashcards
+    flashcards.sort(() => Math.random() - 0.5);
+    flashcards.forEach(flashcard => container.appendChild(flashcard));
 }
 
 // Function to update existing flashcards based on toggles
@@ -196,20 +170,17 @@ function updateFlashcards() {
     const flashcards = Array.from(container.children);
     const removeCorrectToggle = document.getElementById('remove-correct-toggle');
     const mixedCardToggle = document.getElementById('mixed-card-toggle');
+    const textInputToggle = document.getElementById('text-input-toggle');
     const mixedCardsEnabled = mixedCardToggle.checked;
 
     flashcards.forEach(flashcard => {
-        const key = flashcard.dataset.question;
-        const answer = flashcard.dataset.answer;
-        const cardType = getCardType(mixedCardsEnabled);
-
-        flashcard.innerHTML = ''; // Clear current content
+        const { question, answer } = flashcard.dataset;
+        const cardType = getCardType(mixedCardsEnabled, textInputToggle);
+        flashcard.innerHTML = '';
 
         const front = document.createElement('div');
         front.className = 'front';
-        const questionDiv = document.createElement('div');
-        questionDiv.innerHTML = key.replace(/\n/g, '<br>');
-        front.appendChild(questionDiv);
+        front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
 
         const back = document.createElement('div');
         back.className = 'back';
@@ -225,54 +196,11 @@ function updateFlashcards() {
             input.id = 'answer-field';
             input.onclick = event => event.stopPropagation();
             input.onkeydown = event => handleFlashcardInput(event, flashcard, answer, removeCorrectToggle);
-
             front.appendChild(input);
 
-            flashcard.onclick = () => {
-                if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.classList.remove('correct', 'incorrect');
-                    flashcard.classList.remove('flip');
-                    setTimeout(() => {
-                        front.innerHTML = '';
-                        front.appendChild(questionDiv);
-                        front.appendChild(input);
-                        input.value = '';
-                        flashcard.dataset.showingAnswer = 'false';
-                        flashcard.dataset.attempted = 'false';
-                    }, 600); // Wait for the flip animation to complete
-                } else if (flashcard.dataset.attempted === 'true' || cardType === 'clickReveal') {
-                    flashcard.classList.add('flip');
-                    setTimeout(() => {
-                        back.innerHTML = answer.replace(/\n/g, '<br>');
-                        flashcard.classList.add(flashcard.classList.contains('incorrect') ? 'incorrect' : 'correct');
-                        flashcard.dataset.showingAnswer = 'true';
-                    }, 600); // Wait for the flip animation to complete
-                }
-            };
-        } else if (cardType === 'clickReveal') {
-            flashcard.onclick = () => {
-                if (flashcard.dataset.showingAnswer === 'true') {
-                    flashcard.classList.remove('correct', 'incorrect');
-                    flashcard.classList.remove('flip');
-                    setTimeout(() => {
-                        front.innerHTML = key.replace(/\n/g, '<br>');
-                        flashcard.dataset.showingAnswer = 'false';
-                        flashcard.dataset.attempted = 'false';
-                    }, 600); // Wait for the flip animation to complete
-                } else {
-                    flashcard.classList.add('flip');
-                    setTimeout(() => {
-                        back.innerHTML = answer.replace(/\n/g, '<br>');
-                        flashcard.classList.add('correct');
-                        flashcard.dataset.showingAnswer = 'true';
-                        if (removeCorrectToggle.checked) {
-                            setTimeout(() => {
-                                flashcard.remove();
-                            }, 1000);
-                        }
-                    }, 600); // Wait for the flip animation to complete
-                }
-            };
+            flashcard.onclick = () => resetFlashcard(flashcard, question, answer, input);
+        } else {
+            flashcard.onclick = () => toggleFlashcard(flashcard, question, answer, removeCorrectToggle);
         }
     });
 }
@@ -286,20 +214,24 @@ function toggleMenu() {
 // Initialize flashcards on page load
 window.onload = createFlashcards;
 
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('revert-button').addEventListener('click', () => {
+        document.querySelectorAll('.flashcard').forEach(card => {
+            card.classList.remove('correct', 'incorrect', 'flip');
+            setTimeout(() => {
+                card.dataset.showingAnswer = 'false';
+                card.dataset.attempted = 'false';
+            }, 600); // Wait for the flip animation to complete
+        });
+    });
+});
+
 // Add event listeners
 document.getElementById('menu-button').addEventListener('click', toggleMenu);
 document.getElementById('shuffle-button').addEventListener('click', shuffleFlashcards);
-document.querySelectorAll('input[name="card-type"]').forEach(toggle => {
-    toggle.addEventListener('change', function() {
+['click-reveal-toggle', 'text-input-toggle', 'remove-correct-toggle', 'mixed-card-toggle'].forEach(id => {
+    document.getElementById(id).addEventListener('change', function() {
         this.dataset.userSet = true;
         updateFlashcards();
     });
-});
-document.getElementById('remove-correct-toggle').addEventListener('change', function() {
-    this.dataset.userSet = true;
-    updateFlashcards();
-});
-document.getElementById('mixed-card-toggle').addEventListener('change', function() {
-    this.dataset.userSet = true;
-    updateFlashcards();
 });
