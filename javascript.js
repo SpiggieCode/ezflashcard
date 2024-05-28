@@ -84,6 +84,10 @@ function toggleFlashcard(flashcard, question, answer, removeCorrectToggle, input
             flashcard.dataset.attempted = 'false';
         }, 600); // Wait for the flip animation to complete
     } else {
+        if (flashcard.dataset.attempted === 'false' && input) {
+            // Prevent flipping if the text input card has not been attempted
+            return;
+        }
         flashcard.classList.add('flip');
         setTimeout(() => {
             flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
