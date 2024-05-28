@@ -171,6 +171,14 @@ body {
     margin-top: 10px;
     text-align: center;
     cursor: text;
+    border:1px solid #989898;
+    border-radius: 5px;
+}
+
+.flashcard input:focus {
+    outline: none !important;
+    border:1px solid #007bff;
+    box-shadow: 0 0 2px #007bff;
 }
 
 .flashcard.correct {
@@ -199,6 +207,78 @@ body {
     width: 100%;
     font-size: 14px;
     text-align: left;
+}
+
+/* Dark mode, because my eyes need a break */
+body.dark-mode {
+    background-color: #181818;
+    color: #e0e0e0;
+}
+
+body.dark-mode #toggle-container {
+    background-color: #282828;
+    border-color: #333;
+}
+
+body.dark-mode #menu-button,
+body.dark-mode .bar-button,
+body.dark-mode #score-container {
+    background-color: #333;
+    color: white;
+}
+
+body.dark-mode .flashcard {
+    background: #333;
+    border-color: #555;
+    color: white;
+}
+
+body.dark-mode .flashcard.correct {
+    background-color: #375437;
+}
+
+body.dark-mode .flashcard.incorrect {
+    background-color: #592e2e;
+}
+
+body.dark-mode #message {
+    background-color: #282828;
+    border-color: #555;
+}
+
+/* Styles for inputs, checkboxes, and radio buttons */
+
+body.dark-mode input:focus {
+    outline: none !important;
+    border:1px solid #7a7a7a;
+    box-shadow: 0 0 5px #7a7a7a;
+}
+
+body.dark-mode input[type="text"],
+body.dark-mode input[type="checkbox"],
+body.dark-mode input[type="radio"] {
+    background-color: #565555;
+    border: 1px solid #7a7a7a;
+    color: white;
+}
+
+body.dark-mode input[type="text"]::placeholder {
+    color: #bbb;
+}
+
+body.dark-mode input[type="checkbox"],
+body.dark-mode input[type="radio"] {
+    accent-color: #565555; /* Customize this to your preferred accent color */
+}
+
+
+body.dark-mode input[type="checkbox"]:checked,
+body.dark-mode input[type="radio"]:checked {
+    background-color: #565555;
+}
+
+body.dark-mode .toggle-option {
+    color: #e0e0e0;
 }
 
 /* Media query for mobile devices */

@@ -40,6 +40,9 @@
     <label class="toggle-option">
         <input type="checkbox" id="show-score-tracker"> Score tracker
     </label>
+    <label class="toggle-option">
+        <input type="checkbox" id="dark-mode-toggle"> Dark mode
+    </label>
 </div>
 
 <div id="message">
@@ -50,9 +53,22 @@
         <h4>About EzFlashcard</h4>
         EzFlashcard is a user-friendly, open-source tool designed to dynamically create flashcards using key=value parameters in the URL.
         <br>Essentially, it functions like a REST API without a backend. The content is passed through the URL, and the application runs in the end user's browser.
-        <br><br>I originally developed this to enable a custom language learning GPT to create flashcards, but this is just one of its many potential use cases.
     </div>
     <div id="hints">
+        <br><h4>How to use EzFlashcard:</h4>
+        1. Configure your URL by adding question=answer parameters separated by the & symbol.
+        <br>2. Add optional parameters with defined flags, like card modes and settings.
+        <br>3. Share and open the link to start learning!
+
+         <br><h4>Currently supported flags:</h4>
+         clickreveal=true, sets card mode to click to show answer
+         <br>textinput=true, sets card mode to type answer
+         <br>scoretracker=true, when used in conjunction with textinput the application will track correct responses and remove cards after answering
+         <br>mixedcards=true, will offer you a combination of available card modes
+         <br>hidemenu=true, hides the menu where option settings are stored - useful for preventing users from making changes
+         <br>removecorrect=true, removes cards that are answered correctly, in click reveal mode it removes all cards
+         <br>darkmode=true, dark mode - what else?
+
         <br><h4>Tips and tricks:</h4>
         1. While you can manually create URLs, it's easier and more efficient to do this programmatically.
         <br>2. Since EzFlashcard has no backend and doesn't store data, bookmarks can be used to save configurations.
