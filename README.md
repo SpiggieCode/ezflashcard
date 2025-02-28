@@ -32,10 +32,6 @@
         <li>If textinput=true this will enable a score tracker, cards will be removed from the stack when answered and correct answers will increase score</li>
     </ul>
     </li>
-    <li><i>mixedcards=true</i></li>
-    <ul>
-      <li>Sets the card mode to mixed cards, each card will be assigned a different type at random</li>
-    </ul>
     <li><i>removecorrect=true</i></li>
     <ul>
       <li>After entering a correct answer, the card will be removed from the stack</li>
