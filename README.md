@@ -27,6 +27,14 @@
     <ul>
       <li>Sets card mode to click to input answer, users must type the answer and press enter to reveal</li>
     </ul>
+    <li><i>studymode=true</i></li>
+    <ul>
+      <li>Displays a single card with question and answer, clicking the card cycles through the stack</li>
+    </ul>
+    <li><i>matchmode=true</i></li>
+    <ul>
+      <li>Cards are placed face down, click two cards to find matches</li>
+    </ul>
     <li><i>scoremode=true</i>
     <ul>
         <li>If textinput=true this will enable a score tracker, cards will be removed from the stack when answered and correct answers will increase score</li>
