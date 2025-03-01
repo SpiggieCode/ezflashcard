@@ -110,6 +110,12 @@ body.study-mode .flashcard.fling {
     pointer-events: all;
 }
 
+#limit-cards-number {
+    width: 60px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
 .bar-button {
     height: 50px;
     width: 50px;
