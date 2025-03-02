@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,88 +9,162 @@
     <meta name="source" content="https://github.com/SpiggieCode">
     <link rel="icon" type="image/png" href="ezflashcard.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 
 <body>
-<div id="topbar">
-    <div id="button-container">
-        <button id="menu-button"><span class="material-symbols-outlined">menu</span></button>
-        <button class="bar-button" id="shuffle-button"><span class="material-symbols-outlined">shuffle</span></button>
-        <button class="bar-button" id="revert-button"><span class="material-symbols-outlined">restart_alt</span></button>
+    <div id="topbar">
+        <div id="button-container">
+            <button id="menu-button"><span class="material-symbols-outlined">menu</span></button>
+            <button class="bar-button" id="import-button"><span class="material-symbols-outlined">upload</span></button>
+            <input type="file" id="file-input" accept=".csv" style="display: none;">
+            <button class="bar-button" id="shuffle-button"><span
+                    class="material-symbols-outlined">shuffle</span></button>
+            <button class="bar-button" id="revert-button"><span
+                    class="material-symbols-outlined">restart_alt</span></button>
+        </div>
+        <div id="score-container">
+            Score: <span id="score">0</span>
+        </div>
     </div>
-    <div id="score-container">
-        Score: <span id="score">0</span>
+    <div id="toggle-container">
+        <h5 class="toggle-option">Card mode</h5>
+        <label class="toggle-option">
+            <input type="radio" name="card-type" id="click-reveal-toggle" checked> Memorize
+        </label>
+        <label class="toggle-option">
+            <input type="radio" name="card-type" id="text-input-toggle"> Test Yourself
+        </label>
+        <label class="toggle-option">
+            <input type="radio" name="card-type" id="study-mode-toggle"> Study Mode
+        </label>
+        <label class="toggle-option">
+            <input type="radio" name="card-type" id="match-mode-toggle"> Match Mode
+        </label>
+        <br>
+        <h5 class="toggle-option">Options</h5>
+        <label class="toggle-option">
+            <input type="checkbox" id="remove-correct-toggle"> Hide correct
+        </label>
+        <label class="toggle-option">
+            <input type="checkbox" id="dark-mode-toggle"> Dark mode
+        </label>
+        <br>
+        <h5 class="toggle-option">Settings</h5>
+        <label class="toggle-option">
+            <input type="checkbox" id="limit-cards-toggle"> Limit Cards
+        </label>
+        <label class="toggle-option" id="limit-cards-container">
+            <input type="number" id="limit-cards-number" min="1" value="10" disabled> <!-- Default 10 -->
+        </label>
+        <label class="toggle-option">
+            <input type="checkbox" id="swap-question-answers"> Swap Q&A
+        </label>
+
+
     </div>
-</div>
-<div id="toggle-container">
-    <h5 class="toggle-option">Card mode</h5>
-    <label class="toggle-option">
-        <input type="radio" name="card-type" id="click-reveal-toggle" checked> Memorize
-    </label>
-    <label class="toggle-option">
-        <input type="radio" name="card-type" id="text-input-toggle"> Test Yourself
-    </label>
-    <label class="toggle-option">
-        <input type="radio" name="card-type" id="study-mode-toggle"> Study Mode
-    </label>
-    <label class="toggle-option">
-        <input type="radio" name="card-type" id="match-mode-toggle"> Match Mode
-    </label>
-    <br><h5 class="toggle-option">Options</h5>
-    <label class="toggle-option">
-        <input type="checkbox" id="remove-correct-toggle"> Hide correct
-    </label>
-    <label class="toggle-option">
-        <input type="checkbox" id="dark-mode-toggle"> Dark mode
-    </label>
-    <br><h5 class="toggle-option">Settings</h5>
-    <label class="toggle-option">
-        <input type="checkbox" id="limit-cards-toggle"> Limit Cards
-    </label>
-    <label class="toggle-option" id="limit-cards-container">
-        <input type="number" id="limit-cards-number" min="1" value="10" disabled> <!-- Default 10 -->
-    </label>
-    <label class="toggle-option">
-        <input type="checkbox" id="swap-question-answers"> Swap Q&A
-    </label>
-    
 
-</div>
+    <div id="message">
+        <h3>Please configure parameters and reload the site to continue.</h3>
+        <a
+            href="https://spiggiecode.github.io/ezflashcard?card1=answer1&card2=answer2&card3=answer3">https://spiggiecode.github.io/ezflashcard?card1=answer1&card2=answer2&card3=answer3</a>
+        <br><br>
+        <div id="about">
+            <h4>About EzFlashcard</h4>
+            EzFlashcard is a user-friendly, open-source tool designed to dynamically create flashcards using key=value
+            parameters in the URL.
+            <br>Essentially, it functions like a REST API without a back end. The content is passed through the URL, and
+            the application runs in the end user's browser.
+        </div>
+        <div id="hints">
+            <br>
+            <h4>How to use EzFlashcard:</h4>
+            1. Configure your URL by adding question=answer parameters separated by the & symbol.
+            <br>2. Add optional parameters with defined flags, like card modes and settings.
+            <br>3. Share and open the link to start learning!
 
-<div id="message">
-    <h3>Please configure parameters and reload the site to continue.</h3>
-    <a href="https://spiggiecode.github.io/ezflashcard?card1=answer1&card2=answer2&card3=answer3">https://spiggiecode.github.io/ezflashcard?card1=answer1&card2=answer2&card3=answer3</a>
-    <br><br>
-    <div id="about">
-        <h4>About EzFlashcard</h4>
-        EzFlashcard is a user-friendly, open-source tool designed to dynamically create flashcards using key=value parameters in the URL.
-        <br>Essentially, it functions like a REST API without a back end. The content is passed through the URL, and the application runs in the end user's browser.
+            <br>
+            <h4>Currently supported flags:</h4>
+            <ul>
+                <li>clickreveal=true</li>
+                <ul>
+                    <li>Default mode, called Memorize in the UI</li>
+                    <li>Sets card mode to click to flip, classic flip card style</li>
+                </ul>
+                <li>textinput=true</li>
+                <ul>
+                    <li>Quiz mode, called Test Yourself in the UI</li>
+                    <li>Sets card mode to text input, users must type the answer and press enter to reveal</li>
+                </ul>
+                <li>studymode=true</li>
+                <ul>
+                    <li>Displays a single card with question and answer, clicking the card cycles through the stack</li>
+                    <li>Note: The stack resets, so this mode is essentially infinite. A counter is shown to indicate
+                        where you are in the stack.</li>
+                </ul>
+                <li>matchmode=true</li>
+                <ul>
+                    <li>Cards are placed face down, click two cards to find matches</li>
+                </ul>
+                </li>
+                <li>removecorrect=true</li>
+                <ul>
+                    <li>After entering a correct answer, the card will be removed from the stack</li>
+                </ul>
+                <li>swapqa=true</li>
+                <ul>
+                    <li>This will swap the question and answer sides of the cards, question1=answer1 becomes
+                        answer1=question1.</li>
+                    <li>This only applies to memorize and test yourself modes (click reveal and text input)</li>
+                </ul>
+                <li>hidemenu=true</li>
+                <ul>
+                    <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to
+                        prevent users from changing options</li>
+                </ul>
+                <li>darkmode=true</li>
+                <ul>
+                    <li>Applies a dark theme to the application</li>
+                </ul>
+            </ul>
+            <h4>Additional Features:</h4>
+            <ul>
+            <li>Limit cards</li>
+            <ul>
+                <li>Limits the number of cards in the play area, default is 10 but this can be changd in the menu
+                </li>
+                <li>If used in combination with remove correct, it will refill the board with available cards to
+                    maintain the specified number.</li>
+                <li>This does not have a URL flag yet, its only an in-app option</li>
+            </ul>
+            <li>Generate URL with CSV</li>
+            <ul>
+                <li>Click the import button and select a URL, an ezflashcard link will be generated that you can copy or open.</li>
+                <li>Note: The import checks only columns A and B. Column A should be questions, B answers.</li>
+                <li>Row 1 is reserved for column titles.</li>
+            </ul>
+            </ul>
+            <br>
+            <h4>Tips and tricks:</h4>
+            1. While you can manually create URLs, it's easier and more efficient to do this programmatically.
+            <br>2. Since EzFlashcard has no back end and doesn't store data, bookmarks can be used to save
+            configurations.
+            <br>3. It's best to share the URL with end users as a hyperlink to avoid displaying a lengthy URL.
+            <br>4. Try running this site as an embed to avoid sharing links!
+        </div>
     </div>
-    <div id="hints">
-        <br><h4>How to use EzFlashcard:</h4>
-        1. Configure your URL by adding question=answer parameters separated by the & symbol.
-        <br>2. Add optional parameters with defined flags, like card modes and settings.
-        <br>3. Share and open the link to start learning!
 
-         <br><h4>Currently supported flags:</h4>
-         clickreveal=true, classic flashcard - click the card to flip it over and reveal the answer
-         <br>textinput=true, test yourself - you must type the answer from memory
-         <br>hidemenu=true, hides the menu where option settings are stored - useful for preventing users from making changes
-         <br>removecorrect=true, removes cards that are answered correctly, in click reveal mode it removes once they are flipped
-         <br>darkmode=true, dark mode
-         <br>swapqa=true, swaps the question and answers, great for studying!
-
-        <br><h4>Tips and tricks:</h4>
-        1. While you can manually create URLs, it's easier and more efficient to do this programmatically.
-        <br>2. Since EzFlashcard has no back end and doesn't store data, bookmarks can be used to save configurations.
-        <br>3. It's best to share the URL with end users as a hyperlink to avoid displaying a lengthy URL.
-        <br>4. Try running this site as an embed to avoid sharing links!
+    <div id="generated-url-container" style="display:none;" class="url-dialog">
+        <a id="generated-url" href="#" target="_blank">Loading...</a>
+        <button id="close-url-button">
+            <span class="material-symbols-outlined">close</span>
+        </button>
     </div>
-</div>
+    <div class="container" id="flashcards-container"></div>
 
-<div class="container" id="flashcards-container"></div>
-
-<script src="javascript.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="javascript.js"></script>
 </body>
+
 </html>

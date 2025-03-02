@@ -38,6 +38,63 @@ const limitCardsNumber = getElement('limit-cards-number');
 const limitCardsContainer = document.getElementById('limit-cards-container');
 const swapQAToggle = getElement('swap-question-answers'); // Swap Q&A toggle
 
+const importButton = document.getElementById("import-button");
+const fileInput = document.getElementById("file-input");
+const urlContainer = document.getElementById("generated-url-container");
+const urlElement = document.getElementById("generated-url");
+const closeButton = document.getElementById("close-url-button");
+
+// Open file selector when clicking import button
+importButton.addEventListener("click", () => fileInput.click());
+
+// Handle file input change
+fileInput.addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const csvText = e.target.result;
+            parseCSV(csvText);
+        };
+        reader.readAsText(file);
+    }
+});
+
+// Function to parse CSV safely and generate the URL
+function parseCSV(csvText) {
+    Papa.parse(csvText, {
+        complete: function (results) {
+            if (results.data.length < 2) return; // Skip empty files
+
+            const baseUrl = window.location.pathname + "?"; // Get the base URL dynamically
+            let params = [];
+
+            for (let i = 1; i < results.data.length; i++) { // Skip header row
+                const row = results.data[i];
+                if (row.length >= 2) {
+                    const question = row[0].trim();
+                    const answer = row[1].trim();
+                    if (question && answer) {
+                        params.push(`${encodeURIComponent(question)}=${encodeURIComponent(answer)}`);
+                    }
+                }
+            }
+
+            if (params.length > 0) {
+                const url = baseUrl + params.join("&");
+                urlElement.href = url;
+                urlElement.textContent = "Import complete, click here to start!";
+                urlContainer.style.display = "inline-block";
+            }
+        }
+    });
+}
+
+
+closeButton.addEventListener("click", function () {
+    urlContainer.style.display = "none";
+});
+
 // Enable or disable the number input based on the toggle
 limitCardsToggle.addEventListener('change', function () {
     limitCardsNumber.disabled = !this.checked;
