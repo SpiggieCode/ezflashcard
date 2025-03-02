@@ -18,48 +18,65 @@
 <h4>Features</h4>
 <ul>
   <li><b>Automatically enable settings with flags:</b></li>
-  <ul>
-    <li><i>clickreveal=true</i></li>
-    <ul>
-      <li>Default mode- sets card mode to click to flip, classic flip card style</li>
-    </ul>
-    <li><i>textinput=true</i></li>
-    <ul>
-      <li>Sets card mode to text input, users must type the answer and press enter to reveal</li>
-    </ul>
-    <li><i>studymode=true</i></li>
-    <ul>
-      <li>Displays a single card with question and answer, clicking the card cycles through the stack</li>
-      <li>Note: The stack resets, so this mode is essentially infinite. A counter is shown to indicate where you are in the stack.</li>
-    </ul>
-    <li><i>matchmode=true</i></li>
-    <ul>
-      <li>Cards are placed face down, click two cards to find matches</li>
-    </ul>
-    </li>
-    <li><i>removecorrect=true</i></li>
-    <ul>
-      <li>After entering a correct answer, the card will be removed from the stack</li>
-    </ul>
-    <li><i>swapqa=true</i></li>
-    <ul>
-      <li>This will swap the question and answer sides of the cards, question1=answer1 becomes answer1=question1.</li>
-      <li>This only applies to memorize and test yourself modes (click reveal and text input)</li>
-    </ul>
-    <li><i>hidemenu=true</i></li>
-    <ul>
-      <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to prevent users from changing options</li>
-    </ul>
-    <li><i>darkmode=true</i></li>
-    <ul>
-        <li>Applies a dark theme to the application</li>
-    </ul>
-    <li><i>Limit cards</i></li>
-    <ul>
-      <li>Limits the number of cards in the play area, default is 10 but this can be changd in the menu</li>
-      <li>If used in combination with remove correct, it will refill the board with available cards to maintain the specified number.</li>
-      <li>Note: This does not have a URL flag yet, its only an in-app option</li>
-  </ul>
+ <ul>
+                <li>clickreveal=true</li>
+                <ul>
+                    <li>Default mode, called Memorize in the UI</li>
+                    <li>Sets card mode to click to flip, classic flip card style</li>
+                </ul>
+                <li>textinput=true</li>
+                <ul>
+                    <li>Quiz mode, called Test Yourself in the UI</li>
+                    <li>Sets card mode to text input, users must type the answer and press enter to reveal</li>
+                </ul>
+                <li>studymode=true</li>
+                <ul>
+                    <li>Displays a single card with question and answer, clicking the card cycles through the stack</li>
+                    <li>Note: The stack resets, so this mode is essentially infinite. A counter is shown to indicate
+                        where you are in the stack.</li>
+                </ul>
+                <li>matchmode=true</li>
+                <ul>
+                    <li>Cards are placed face down, click two cards to find matches</li>
+                </ul>
+                </li>
+                <li>removecorrect=true</li>
+                <ul>
+                    <li>After entering a correct answer, the card will be removed from the stack</li>
+                </ul>
+                <li>swapqa=true</li>
+                <ul>
+                    <li>This will swap the question and answer sides of the cards, question1=answer1 becomes
+                        answer1=question1.</li>
+                    <li>This only applies to memorize and test yourself modes (click reveal and text input)</li>
+                </ul>
+                <li>hidemenu=true</li>
+                <ul>
+                    <li>Disables the settings menu, useful if you are running EzFlashcard in an iframe and want to
+                        prevent users from changing options</li>
+                </ul>
+                <li>darkmode=true</li>
+                <ul>
+                    <li>Applies a dark theme to the application</li>
+                </ul>
+            
+</ul>
+<h4>Additional Features:</h4>
+<ul>
+              <li>Limit cards</li>
+            <ul>
+                <li>Limits the number of cards in the play area, default is 10 but this can be changd in the menu
+                </li>
+                <li>If used in combination with remove correct, it will refill the board with available cards to
+                    maintain the specified number.</li>
+                <li>This does not have a URL flag yet, its only an in-app option</li>
+            </ul>
+            <li>Generate URL with CSV</li>
+            <ul>
+                <li>Click the import button and select a URL, an ezflashcard link will be generated that you can copy or open.</li>
+                <li>Note: The import checks only columns A and B. Column A should be questions, B answers.</li>
+                <li>Row 1 is reserved for column titles.</li>
+            </ul>
 </ul>
 
 <hr>
