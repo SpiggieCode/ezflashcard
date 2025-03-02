@@ -9,29 +9,56 @@ let remainingCards = [];
 let displayedCards = [];
 
 const getElement = id => document.getElementById(id);
-const setVisibility = (element, visible) => element.style.visibility = visible ? 'visible' : 'hidden';
+
+// Unified function to set element visibility or display
+const setElementVisibility = (element, isVisible, useDisplay = false) => {
+    if (useDisplay) {
+        element.style.display = isVisible ? 'block' : 'none';
+    } else {
+        element.style.visibility = isVisible ? 'visible' : 'hidden';
+    }
+};
+
+// Utility functions for class manipulation
+const addClasses = (element, ...classes) => element.classList.add(...classes);
+const removeClasses = (element, ...classes) => element.classList.remove(...classes);
+
+// Utility function to format multiline text
+const formatMultilineText = text => text.replace(/\n/g, '<br>');
 
 const container = getElement('flashcards-container');
 const messageDiv = getElement('message');
 const removeCorrectToggle = getElement('remove-correct-toggle');
 const textInputToggle = getElement('text-input-toggle');
-const matchModeToggle = getElement('match-mode-toggle')
-const scoreTrackerToggle = getElement('show-score-tracker');
+const matchModeToggle = getElement('match-mode-toggle');
 const darkModeToggle = getElement('dark-mode-toggle');
 const studyModeToggle = getElement('study-mode-toggle');
 const limitCardsToggle = getElement('limit-cards-toggle');
 const limitCardsNumber = getElement('limit-cards-number');
+const swapQAToggle = getElement('swap-question-answers'); // Swap Q&A toggle
 
 // Enable or disable the number input based on the toggle
-limitCardsToggle.addEventListener('change', function() {
+limitCardsToggle.addEventListener('change', function () {
     limitCardsNumber.disabled = !this.checked;
     createFlashcards();
 });
 
 // Re-create flashcards when the limit number changes
-limitCardsNumber.addEventListener('input', function() {
+limitCardsNumber.addEventListener('input', function () {
     createFlashcards();
 });
+
+// Function to increment the score
+function incrementScore() {
+    score++;
+    updateScore();
+}
+
+// Function to reset the score
+function resetScore() {
+    score = 0;
+    updateScore();
+}
 
 // Function to update the score display
 function updateScore() {
@@ -48,19 +75,31 @@ function getUrlParameters() {
     return params;
 }
 
-// Function to set toggle states based on URL parameters
-function setToggleState(params, toggleElements) {
-    toggleElements.forEach(({ element, paramName }) => {
-        if (params.hasOwnProperty(paramName)) {
-            element.checked = params[paramName] === 'true';
-            if (paramName === 'showscoretracker') {
-                scoreTrackerEnabled = element.checked;
-                setVisibility(getElement('score-container'), element.checked);
-            } else if (paramName === 'darkmode') {
+// Function to update toggle states based on URL parameters
+function updateToggleStates(params) {
+    const toggles = [
+        { element: getElement('click-reveal-toggle'), paramName: 'clickreveal' },
+        { element: textInputToggle, paramName: 'textinput' },
+        { element: removeCorrectToggle, paramName: 'removecorrect' },
+        { element: darkModeToggle, paramName: 'darkmode' },
+        { element: studyModeToggle, paramName: 'studymode' },
+        { element: matchModeToggle, paramName: 'matchmode' },
+        { element: swapQAToggle, paramName: 'swapqa' } // Handle Swap Q&A URL parameter
+    ];
+
+    toggles.forEach(({ element, paramName }) => {
+        const paramValue = params[paramName];
+        if (paramValue !== undefined) {
+            element.checked = paramValue === 'true';
+            element.dataset.userSet = 'true';
+
+            if (paramName === 'darkmode') {
                 toggleDarkMode(element.checked);
             }
         }
     });
+
+    updateOptionStates();
 }
 
 // Function to toggle Dark Mode
@@ -69,34 +108,27 @@ function toggleDarkMode(enabled) {
 }
 
 // Function to handle flashcard input
-function handleFlashcardInput(event, flashcard, answer) {
+function handleFlashcardInput(event, flashcard, question) {
     if (event.key !== 'Enter') return;
 
     const input = event.target;
-    const isCorrect = input.value.trim().toLowerCase() === answer.trim().toLowerCase();
+    const isCorrect = input.value.trim().toLowerCase() === question.trim().toLowerCase();
 
-    // Flip the card to show the back with the correct answer
-    flashcard.classList.add('flip');
+    addClasses(flashcard, 'flip');
 
     setTimeout(() => {
-        flashcard.classList.add(isCorrect ? 'correct' : 'incorrect');
+        addClasses(flashcard, isCorrect ? 'correct' : 'incorrect');
         flashcard.dataset.showingAnswer = 'true';
-        flashcard.querySelector('.back').innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
+        flashcard.querySelector('.back').innerHTML = `<div>${formatMultilineText(question)}</div>`;
 
         if (scoreTrackerEnabled && isCorrect) {
-            score++;
-            updateScore();
+            incrementScore();
         }
 
         // Handle removal of correct cards if necessary
         if (isCorrect && (removeCorrectToggle.checked || scoreTrackerEnabled)) {
             setTimeout(() => {
-                flashcard.classList.add('fade-out');
-                setTimeout(() => {
-                    flashcard.remove();
-                    // Dispatch custom event to handle removal
-                    flashcard.dispatchEvent(new Event('removeCard'));
-                }, 600);
+                removeFlashcardWithAnimation(flashcard);
             }, 500);
         }
     }, 600);
@@ -104,124 +136,137 @@ function handleFlashcardInput(event, flashcard, answer) {
     flashcard.dataset.attempted = 'true';
 }
 
-// Function to create flashcard element
-function createFlashcardElement(question, answer, cardType, pairId = null) {
-    const flashcard = document.createElement('div');
+// Utility function to remove flashcard with animation
+function removeFlashcardWithAnimation(flashcard, delay = 600) {
+    addClasses(flashcard, 'fade-out');
+    setTimeout(() => {
+        flashcard.remove();
+        flashcard.dispatchEvent(new Event('removeCard'));
+    }, delay);
+}
+
+// Function to generate flashcard content
+function generateFlashcardContent(flashcard, question, answer, cardType, pairId = null) {
+    flashcard.innerHTML = '';
     flashcard.className = 'flashcard';
     Object.assign(flashcard.dataset, { question, answer });
-
-    if (pairId) {
-        flashcard.dataset.pairId = pairId;
-    }
 
     const front = document.createElement('div');
     front.className = 'front';
     const back = document.createElement('div');
     back.className = 'back';
 
+    // Swap question and answer only in Click to Flip and Text Input modes
+    let displayQuestion = question;
+    let displayAnswer = answer;
+
+    const swapQAEnabled = swapQAToggle.checked && (cardType === 'clickReveal' || cardType === 'textInput');
+    if (swapQAEnabled) {
+        displayQuestion = answer;
+        displayAnswer = question;
+    }
+
     if (cardType === 'matchMode') {
         front.innerHTML = `<div>Flip me!</div>`;
         back.innerHTML = `
             <div>
-                ${question.replace(/\n/g, '<br>')}
+                ${formatMultilineText(question)}
                 <hr class="separator">
-                ${answer.replace(/\n/g, '<br>')}
+                ${formatMultilineText(answer)}
             </div>
         `;
         flashcard.onclick = () => handleMatchClick(flashcard);
     } else if (cardType === 'textInput') {
-        // Place the question and input field on the front of the card
-        front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
+        front.innerHTML = `<div>${formatMultilineText(displayQuestion)}</div>`;
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = 'Type your answer';
         input.id = 'answer-field';
         input.onclick = event => event.stopPropagation();
-        input.onkeydown = event => handleFlashcardInput(event, flashcard, answer);
+        input.onkeydown = event => handleFlashcardInput(event, flashcard, displayAnswer);
         front.appendChild(input);
-
-        // Prepare the back of the card to display the answer
-        back.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
+        back.innerHTML = `<div>${formatMultilineText(displayAnswer)}</div>`;
+    } else if (cardType === 'studyMode') {
+        front.innerHTML = `<div>${formatMultilineText(question)}</div>`;
+        back.innerHTML = `<div>${formatMultilineText(answer)}</div>`;
     } else {
-        // Default behavior for 'clickReveal' mode
-        front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
-        back.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
-        flashcard.onclick = () => toggleFlashcard(flashcard, question, answer);
+        // Click to Flip mode
+        front.innerHTML = `<div>${formatMultilineText(displayQuestion)}</div>`;
+        back.innerHTML = `<div>${formatMultilineText(displayAnswer)}</div>`;
+        flashcard.onclick = () => toggleFlashcard(flashcard, displayQuestion, displayAnswer, cardType);
     }
 
     flashcard.appendChild(front);
     flashcard.appendChild(back);
 
+    if (pairId) {
+        flashcard.dataset.pairId = pairId;
+    }
+}
+
+// Function to create flashcard element
+function createFlashcardElement(question, answer, cardType, pairId = null) {
+    const flashcard = document.createElement('div');
+    generateFlashcardContent(flashcard, question, answer, cardType, pairId);
     return flashcard;
 }
 
-let activeCards = [];
+// Encapsulated function to handle match mode clicks
+const handleMatchClick = (() => {
+    let activeCards = [];
+    return function (card) {
+        if (activeCards.length < 2 && !card.classList.contains('flipped')) {
+            addClasses(card, 'flipped');
+            activeCards.push(card);
 
-// Function to handle match mode card clicks
-function handleMatchClick(card) {
-    if (activeCards.length < 2 && !card.classList.contains('flipped')) {
-        card.classList.add('flipped');
-        activeCards.push(card);
+            if (activeCards.length === 2) {
+                const [firstCard, secondCard] = activeCards;
+                const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
 
-        if (activeCards.length === 2) {
-            const [firstCard, secondCard] = activeCards;
-            const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
-
-            setTimeout(() => {
-                if (isMatch) {
-                    firstCard.classList.add('correct');
-                    secondCard.classList.add('correct');
-                } else {
-                    firstCard.classList.add('incorrect');
-                    secondCard.classList.add('incorrect');
-                    setTimeout(() => {
-                        firstCard.classList.remove('flipped', 'incorrect');
-                        secondCard.classList.remove('flipped', 'incorrect');
-                    }, 1000); // Delay before flipping back
-                }
-                activeCards = [];
-            }, 1000); // Delay to allow the flip animation
+                setTimeout(() => {
+                    if (isMatch) {
+                        addClasses(firstCard, 'correct');
+                        addClasses(secondCard, 'correct');
+                    } else {
+                        addClasses(firstCard, 'incorrect');
+                        addClasses(secondCard, 'incorrect');
+                        setTimeout(() => {
+                            removeClasses(firstCard, 'flipped', 'incorrect');
+                            removeClasses(secondCard, 'flipped', 'incorrect');
+                        }, 1000);
+                    }
+                    activeCards = [];
+                }, 1000);
+            }
         }
-    }
-}
+    };
+})();
 
-// Function to reset or toggle flashcard
-function toggleFlashcard(flashcard, question, answer) {
-    const cardType = getCardType();
-    if (cardType === 'textInput') {
-        // Do nothing in 'textInput' mode
-        return;
-    }
+// Function to toggle flashcard
+function toggleFlashcard(flashcard, frontContent, backContent, cardType) {
+    if (cardType === 'textInput') return;
 
     const frontElement = flashcard.querySelector('.front');
     const backElement = flashcard.querySelector('.back');
 
-    if (!frontElement || !backElement) {
-        // If the elements are not found, do nothing
-        return;
-    }
+    if (!frontElement || !backElement) return;
 
     if (flashcard.dataset.showingAnswer === 'true') {
-        flashcard.classList.remove('correct', 'incorrect', 'flip');
+        removeClasses(flashcard, 'correct', 'incorrect', 'flip');
         setTimeout(() => {
-            frontElement.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
+            frontElement.innerHTML = `<div>${formatMultilineText(frontContent)}</div>`;
             flashcard.dataset.showingAnswer = 'false';
             flashcard.dataset.attempted = 'false';
         }, 500);
     } else {
-        flashcard.classList.add('flip');
+        addClasses(flashcard, 'flip');
         setTimeout(() => {
-            flashcard.classList.add('correct');
+            addClasses(flashcard, 'correct');
             flashcard.dataset.showingAnswer = 'true';
 
             if (removeCorrectToggle && removeCorrectToggle.checked) {
                 setTimeout(() => {
-                    flashcard.classList.add('fade-out');
-                    setTimeout(() => {
-                        flashcard.remove();
-                        // Dispatch custom event to handle removal
-                        flashcard.dispatchEvent(new Event('removeCard'));
-                    }, 500);
+                    removeFlashcardWithAnimation(flashcard, 500);
                 }, 1200);
             }
         }, 500);
@@ -234,73 +279,11 @@ function getCardType() {
         return 'matchMode';
     } else if (textInputToggle.checked) {
         return 'textInput';
-    } else if (studyModeToggle.checked){
+    } else if (studyModeToggle.checked) {
         return 'studyMode';
     } else {
         return 'clickReveal';
     }
-}
-
-// Function to start Study Mode
-function startStudyMode() {
-    const allFlashcards = Array.from(container.children);
-    let currentIndex = 0;
-
-    // Add the study-mode class to body for styling
-    document.body.classList.add('study-mode');
-
-    // Create or show the card counter
-    if (!cardCounterElement) {
-        cardCounterElement = document.createElement('div');
-        cardCounterElement.id = 'card-counter';
-        document.body.appendChild(cardCounterElement);
-    }
-    updateCardCounter(allFlashcards.length - currentIndex);
-
-    function showCard(index) {
-        allFlashcards.forEach((card, i) => {
-            card.style.display = i === index ? 'flex' : 'none';
-            card.classList.remove('fling'); // Remove fling class if present
-            if (i === index) {
-                const { question, answer } = card.dataset;
-                card.innerHTML = `
-                    <div class="front">
-                        <div>${question.replace(/\n/g, '<br>')}</div>
-                        <hr class="separator">
-                        <div>${answer.replace(/\n/g, '<br>')}</div>
-                    </div>
-                `;
-                card.onclick = () => flingCard(card);
-            }
-        });
-        updateCardCounter(allFlashcards.length - index);
-    }
-
-    function flingCard(card) {
-        card.classList.add('fling'); // Add the fling class to trigger animation
-
-        // Wait for the animation to finish before showing the next card
-        card.addEventListener('animationend', onAnimationEnd);
-
-        function onAnimationEnd() {
-            card.removeEventListener('animationend', onAnimationEnd);
-            nextCard(); // Proceed to the next card after animation completes
-        }
-    }
-
-    function nextCard() {
-        if (currentIndex < allFlashcards.length - 1) {
-            currentIndex++;
-            showCard(currentIndex);
-        } else {
-            currentIndex = 0; // Reset index to start over
-            allFlashcards.sort(() => Math.random() - 0.5); // Reshuffle the cards
-            showCard(currentIndex);
-        }
-    }
-
-    // Initially hide all cards except the first one
-    showCard(currentIndex);
 }
 
 // Function to update the card counter
@@ -310,93 +293,141 @@ function updateCardCounter(cardsLeft) {
     }
 }
 
-// Function to stop Study Mode
-function stopStudyMode() {
-    // Remove the study-mode class from body
-    document.body.classList.remove('study-mode');
-
-    // Remove the card counter
-    if (cardCounterElement) {
-        cardCounterElement.remove();
-        cardCounterElement = null;
-    }
-
-    // Reset all cards to be visible and have front/back for normal mode
+// Function to update Study Mode state
+function updateStudyMode(isActive) {
     const allFlashcards = Array.from(container.children);
-    allFlashcards.forEach((card) => {
-        card.style.display = 'flex'; // Show all cards
-        card.classList.remove('fling'); // Remove any animation classes
-        card.onclick = null; // Remove click event listener
-        const { question, answer } = card.dataset;
-        card.innerHTML = ''; // Clear existing content
+    if (isActive) {
+        let currentIndex = 0;
+        document.body.classList.add('study-mode');
 
-        // Create front and back for normal mode
-        const front = document.createElement('div');
-        front.className = 'front';
-        front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
+        if (!cardCounterElement) {
+            cardCounterElement = document.createElement('div');
+            cardCounterElement.id = 'card-counter';
+            document.body.appendChild(cardCounterElement);
+        }
+        updateCardCounter(allFlashcards.length - currentIndex);
 
-        const back = document.createElement('div');
-        back.className = 'back';
-        back.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
+        function showCard(index) {
+            allFlashcards.forEach((card, i) => {
+                card.style.display = i === index ? 'flex' : 'none';
+                removeClasses(card, 'fling');
+                if (i === index) {
+                    const { question, answer } = card.dataset;
+                    card.innerHTML = `
+                        <div class="front">
+                            <div>${formatMultilineText(question)}</div>
+                            <hr class="separator">
+                            <div>${formatMultilineText(answer)}</div>
+                        </div>
+                    `;
+                    card.onclick = () => flingCard(card);
+                }
+            });
+            updateCardCounter(allFlashcards.length - index);
+        }
 
-        card.appendChild(front);
-        card.appendChild(back);
+        function flingCard(card) {
+            addClasses(card, 'fling');
+            card.addEventListener('animationend', onAnimationEnd);
 
-        // Reattach click handler for toggle functionality
-        card.onclick = () => toggleFlashcard(card, question, answer);
-    });
+            function onAnimationEnd() {
+                card.removeEventListener('animationend', onAnimationEnd);
+                nextCard();
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < allFlashcards.length - 1) {
+                currentIndex++;
+                showCard(currentIndex);
+            } else {
+                currentIndex = 0;
+                allFlashcards.sort(() => Math.random() - 0.5);
+                showCard(currentIndex);
+            }
+        }
+
+        showCard(currentIndex);
+    } else {
+        document.body.classList.remove('study-mode');
+        if (cardCounterElement) {
+            cardCounterElement.remove();
+            cardCounterElement = null;
+        }
+
+        allFlashcards.forEach((card) => {
+            card.style.display = 'flex';
+            removeClasses(card, 'fling');
+            card.onclick = null;
+            const { question, answer } = card.dataset;
+            generateFlashcardContent(card, question, answer, getCardType());
+        });
+    }
 }
 
 // Function to update option states
 function updateOptionStates() {
     const textInputEnabled = textInputToggle.checked;
+    scoreTrackerEnabled = textInputEnabled; // Score tracker is now default in text input mode
+    setElementVisibility(getElement('score-container'), scoreTrackerEnabled);
+}
 
-    // Update score tracker visibility
-    scoreTrackerEnabled = textInputEnabled && scoreTrackerToggle.checked;
-    setVisibility(getElement('score-container'), scoreTrackerEnabled);
-    scoreTrackerToggle.disabled = !textInputEnabled;
+// Function to handle card removal and replenishing
+function setupCardRemovalHandlers(flashcard, cardType) {
+    flashcard.addEventListener('removeCard', () => {
+        displayedCards = displayedCards.filter(card => card !== flashcard);
+        replenishFlashcard(cardType);
+    });
+}
+
+// Function to replenish flashcard upon removal
+function replenishFlashcard(cardType) {
+    if (remainingCards.length > 0 && limitCardsToggle.checked && !studyModeToggle.checked) {
+        const nextCardData = remainingCards.shift();
+        const { question, answer } = nextCardData;
+
+        const newFlashcard = createFlashcardElement(question, answer, cardType);
+        setupCardRemovalHandlers(newFlashcard, cardType);
+        container.appendChild(newFlashcard);
+        displayedCards.push(newFlashcard);
+    }
 }
 
 // Function to create flashcards
 function createFlashcards() {
     const params = getUrlParameters();
 
-    // Reset score when recreating flashcards
-    score = 0;
-    updateScore();
+    resetScore();
 
     const scoreContainer = getElement('score-container');
     const textInputEnabled = textInputToggle.checked;
 
-    scoreTrackerEnabled = textInputEnabled && scoreTrackerToggle.checked;
-    setVisibility(scoreContainer, scoreTrackerEnabled);
-    scoreTrackerToggle.disabled = !textInputEnabled;
+    scoreTrackerEnabled = textInputEnabled; // Score tracker is now default in text input mode
+    setElementVisibility(scoreContainer, scoreTrackerEnabled);
 
-    const flagKeys = ['clickreveal', 'textinput', 'removecorrect', 'hidemenu', 'scoretracker', 'darkmode', 'studymode', 'matchmode'];
+    const flagKeys = ['clickreveal', 'textinput', 'removecorrect', 'hidemenu', 'darkmode', 'studymode', 'matchmode', 'swapqa'];
     const cardKeys = Object.keys(params).filter(key => !flagKeys.includes(key));
 
     if (cardKeys.length === 0) {
-        messageDiv.style.display = 'block';
+        setElementVisibility(messageDiv, true, true);
         return;
     } else {
-        messageDiv.style.display = 'none';
+        setElementVisibility(messageDiv, false, true);
     }
 
-    // Reset arrays when recreating flashcards
     displayedCards = [];
     remainingCards = [];
     allCards = [];
     container.innerHTML = '';
 
-    const isMatchMode = getElement('match-mode-toggle').checked;
+    const isMatchMode = matchModeToggle.checked;
     const cardType = getCardType();
 
-    // Add or remove match-mode class on container
     if (isMatchMode) {
-        stopStudyMode();
-        container.classList.add('match-mode');
+        updateStudyMode(false);
+        addClasses(container, 'match-mode');
     } else {
-        container.classList.remove('match-mode');
+        removeClasses(container, 'match-mode');
     }
 
     // Create initial list of all cards
@@ -407,14 +438,10 @@ function createFlashcards() {
         allCards.push(cardData);
     });
 
-    // Exclude Study Mode from the limit
     const limitApplied = limitCardsToggle.checked && !studyModeToggle.checked;
-
-    // Determine the number of cards to display
     let limit = limitApplied ? parseInt(limitCardsNumber.value, 10) : allCards.length;
     limit = Math.min(limit, allCards.length);
 
-    // Select the limited number of cards or pairs
     const initialCards = allCards.slice(0, limit);
     remainingCards = allCards.slice(limit);
 
@@ -428,24 +455,20 @@ function createFlashcards() {
             const flashcard1 = createFlashcardElement(question, answer, cardType, cardContent);
             const flashcard2 = createFlashcardElement(question, answer, cardType, cardContent);
 
-            // Set up removal handlers
             setupCardRemovalHandlers(flashcard1, cardType);
             setupCardRemovalHandlers(flashcard2, cardType);
 
             cards.push(flashcard1, flashcard2);
             displayedCards.push(flashcard1, flashcard2);
         });
-        // Shuffle the cards
+
         cards.sort(() => Math.random() - 0.5);
-        // Append to container
         cards.forEach(card => container.appendChild(card));
     } else {
-        // Existing logic for other modes
         initialCards.forEach(cardData => {
             const { question, answer } = cardData;
             const flashcard = createFlashcardElement(question, answer, cardType);
 
-            // Add event listeners to handle removal and replenishing
             setupCardRemovalHandlers(flashcard, cardType);
 
             container.appendChild(flashcard);
@@ -453,51 +476,28 @@ function createFlashcards() {
         });
 
         if (studyModeToggle.checked) {
-            startStudyMode();
+            updateStudyMode(true);
         } else {
-            stopStudyMode();
+            updateStudyMode(false);
         }
     }
 
     if (params.hidemenu === 'true') getElement('menu-button').style.display = 'none';
 }
 
-// Function to handle card removal and replenishing
-function setupCardRemovalHandlers(flashcard, cardType) {
-    flashcard.addEventListener('removeCard', () => {
-        // Remove the card from the displayedCards array
-        displayedCards = displayedCards.filter(card => card !== flashcard);
+// Function to update existing flashcards based on toggles
+function updateFlashcards() {
+    const flashcards = Array.from(container.children);
+    const textInputEnabled = textInputToggle.checked;
 
-        // Check if we need to add a new card to maintain the limit
-        if (remainingCards.length > 0 && limitCardsToggle.checked && !studyModeToggle.checked) {
-            const nextCardData = remainingCards.shift();
-            const { question, answer } = nextCardData;
+    scoreTrackerEnabled = textInputEnabled; // Score tracker is now default in text input mode
+    setElementVisibility(getElement('score-container'), scoreTrackerEnabled);
 
-            if (cardType === 'matchMode') {
-                const cardContent = `${question}\n${answer}`;
+    const cardType = getCardType();
 
-                // Create two identical cards with a pair ID
-                const newFlashcard1 = createFlashcardElement(question, answer, cardType, cardContent);
-                const newFlashcard2 = createFlashcardElement(question, answer, cardType, cardContent);
-
-                // Set up the removal handler for the new cards
-                setupCardRemovalHandlers(newFlashcard1, cardType);
-                setupCardRemovalHandlers(newFlashcard2, cardType);
-
-                container.appendChild(newFlashcard1);
-                container.appendChild(newFlashcard2);
-
-                displayedCards.push(newFlashcard1, newFlashcard2);
-            } else {
-                const newFlashcard = createFlashcardElement(question, answer, cardType);
-
-                // Set up the removal handler for the new card
-                setupCardRemovalHandlers(newFlashcard, cardType);
-
-                container.appendChild(newFlashcard);
-                displayedCards.push(newFlashcard);
-            }
-        }
+    flashcards.forEach(flashcard => {
+        const { question, answer } = flashcard.dataset;
+        generateFlashcardContent(flashcard, question, answer, cardType);
     });
 }
 
@@ -506,48 +506,12 @@ function shuffleFlashcards() {
     const flashcards = Array.from(container.children);
     flashcards.sort(() => Math.random() - 0.5);
     flashcards.forEach(flashcard => container.appendChild(flashcard));
-}
 
-// Function to update existing flashcards based on toggles
-function updateFlashcards() {
-    if (getCardType()=='matchMode') {
-        return
+    if (studyModeToggle.checked) {
+        updateStudyMode(true);
+    } else {
+        updateFlashcards();
     }
-    const flashcards = Array.from(container.children);
-    const textInputEnabled = textInputToggle.checked;
-
-    scoreTrackerEnabled = textInputEnabled && scoreTrackerToggle.checked;
-    setVisibility(getElement('score-container'), scoreTrackerEnabled);
-    scoreTrackerToggle.disabled = !textInputEnabled;
-
-    flashcards.forEach(flashcard => {
-        const { question, answer } = flashcard.dataset;
-        const cardType = getCardType();
-        flashcard.innerHTML = '';
-
-        const front = document.createElement('div');
-        front.className = 'front';
-        front.innerHTML = `<div>${question.replace(/\n/g, '<br>')}</div>`;
-
-        const back = document.createElement('div');
-        back.className = 'back';
-        back.innerHTML = `<div>${answer.replace(/\n/g, '<br>')}</div>`;
-
-        flashcard.appendChild(front);
-        flashcard.appendChild(back);
-
-        if (cardType === 'textInput') {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'Type your answer';
-            input.id = 'answer-field';
-            input.onclick = event => event.stopPropagation();
-            input.onkeydown = event => handleFlashcardInput(event, flashcard, answer);
-            front.appendChild(input);
-        }
-
-        flashcard.onclick = () => toggleFlashcard(flashcard, question, answer);
-    });
 }
 
 // Function to toggle the visibility of the settings menu
@@ -559,14 +523,14 @@ function toggleMenu() {
     isTransitioning = true;
 
     if (toggleContainer.classList.contains('show')) {
-        toggleContainer.classList.remove('show');
+        removeClasses(toggleContainer, 'show');
         setTimeout(() => {
-            setVisibility(toggleContainer, false);
+            setElementVisibility(toggleContainer, false);
             isTransitioning = false;
         }, 101);
     } else {
-        setVisibility(toggleContainer, true);
-        toggleContainer.classList.add('show');
+        setElementVisibility(toggleContainer, true);
+        addClasses(toggleContainer, 'show');
         setTimeout(() => isTransitioning = false, 101);
     }
 }
@@ -574,59 +538,116 @@ function toggleMenu() {
 // Initialize flashcards on page load
 window.onload = () => {
     const params = getUrlParameters();
-    setToggleState(params, [
-        { element: getElement('click-reveal-toggle'), paramName: 'clickreveal' },
-        { element: textInputToggle, paramName: 'textinput' },
-        { element: removeCorrectToggle, paramName: 'removecorrect' },
-        { element: scoreTrackerToggle, paramName: 'scoretracker' },
-        { element: darkModeToggle, paramName: 'darkmode' },
-        { element: studyModeToggle, paramName: 'studymode' },
-        { element: getElement('match-mode-toggle'), paramName: 'matchmode' }
-    ]);
-    
-    createFlashcards(); // Now create the flashcards with the toggles set
+    updateToggleStates(params);
+
+    createFlashcards();
+    updateFlashcards();
 };
 
-// Add event listener for reset button
 getElement('revert-button').addEventListener('click', () => {
-    createFlashcards(); // Reset the flashcards to their initial state
+    resetScore();
+
+    const cardType = getCardType();
+
+    container.innerHTML = '';
+
+    const limitApplied = limitCardsToggle.checked;
+    let limit = allCards.length;
+    if (limitApplied) {
+        limit = parseInt(limitCardsNumber.value, 10) || allCards.length;
+    }
+
+    displayedCards = [];
+    remainingCards = [];
+    let cardsToDisplay = allCards.slice(0, limit);
+    remainingCards = allCards.slice(limit);
+
+    if (cardType === 'matchMode') {
+        let cards = [];
+        cardsToDisplay.forEach(cardData => {
+            const { question, answer } = cardData;
+            const cardContent = `${question}\n${answer}`;
+
+            const flashcard1 = createFlashcardElement(question, answer, cardType, cardContent);
+            const flashcard2 = createFlashcardElement(question, answer, cardType, cardContent);
+
+            setupCardRemovalHandlers(flashcard1, cardType);
+            setupCardRemovalHandlers(flashcard2, cardType);
+
+            cards.push(flashcard1, flashcard2);
+            displayedCards.push(flashcard1, flashcard2);
+        });
+
+        cards.sort(() => Math.random() - 0.5);
+        cards.forEach(card => container.appendChild(card));
+    } else if (cardType === 'studyMode') {
+        cardsToDisplay.forEach(cardData => {
+            const { question, answer } = cardData;
+            const flashcard = createFlashcardElement(question, answer, cardType);
+
+            setupCardRemovalHandlers(flashcard, cardType);
+
+            container.appendChild(flashcard);
+            displayedCards.push(flashcard);
+        });
+
+        updateStudyMode(true);
+    } else {
+        cardsToDisplay.forEach(cardData => {
+            const { question, answer } = cardData;
+            const flashcard = createFlashcardElement(question, answer, cardType);
+
+            setupCardRemovalHandlers(flashcard, cardType);
+
+            container.appendChild(flashcard);
+            displayedCards.push(flashcard);
+        });
+
+        updateStudyMode(false);
+    }
+
+    if (cardType === 'textInput') {
+        updateFlashcards();
+    }
+
+    updateOptionStates();
 });
 
-// Add event listeners for the menu buttons and toggles
-getElement('menu-button').addEventListener('click', toggleMenu);
-getElement('shuffle-button').addEventListener('click', shuffleFlashcards);
+// Utility function to add event listeners to multiple elements
+const addEventListeners = (eventType, ids, handler) => {
+    ids.forEach(id => {
+        getElement(id).addEventListener(eventType, handler);
+    });
+};
+
+// Add event listeners for menu buttons and toggles
+addEventListeners('click', ['menu-button'], toggleMenu);
+addEventListeners('click', ['shuffle-button'], shuffleFlashcards);
 
 // Options requiring flashcard recreation
-['click-reveal-toggle', 'text-input-toggle', 'study-mode-toggle', 'match-mode-toggle'].forEach(id => {
-    getElement(id).addEventListener('change', function() {
-        this.dataset.userSet = 'true';
-        createFlashcards();
-    });
+addEventListeners('change', ['click-reveal-toggle', 'text-input-toggle', 'study-mode-toggle', 'match-mode-toggle', 'swap-question-answers'], function () {
+    this.dataset.userSet = 'true';
+    createFlashcards();
 });
-
 
 // Options not requiring flashcard recreation
-['remove-correct-toggle', 'show-score-tracker'].forEach(id => {
-    getElement(id).addEventListener('change', function() {
-        this.dataset.userSet = true;
-        updateOptionStates();
-    });
+addEventListeners('change', ['remove-correct-toggle'], function () {
+    this.dataset.userSet = 'true';
+    updateOptionStates();
 });
 
-getElement('text-input-toggle').addEventListener('change', function() {
-    this.dataset.userSet = true;
+textInputToggle.addEventListener('change', function () {
+    this.dataset.userSet = 'true';
     updateFlashcards();
 });
 
-getElement('limit-cards-toggle').addEventListener('change', function() {
-    let card = getCardType()
-    console.log(card)
-    if (getCardType() != ('studyMode')) {
+limitCardsToggle.addEventListener('change', function () {
+    if (getCardType() !== 'studyMode') {
         updateFlashcards();
     }
-})
+});
 
-darkModeToggle.addEventListener('change', function() {
-    this.dataset.userSet = true;
+darkModeToggle.addEventListener('change', function () {
+    this.dataset.userSet = 'true';
     toggleDarkMode(this.checked);
 });
