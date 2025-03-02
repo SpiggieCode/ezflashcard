@@ -21,28 +21,30 @@
   <ul>
     <li><i>clickreveal=true</i></li>
     <ul>
-      <li>Sets card mode to click to flip, classic flip card style</li>
+      <li>Default mode- sets card mode to click to flip, classic flip card style</li>
     </ul>
     <li><i>textinput=true</i></li>
     <ul>
-      <li>Sets card mode to click to input answer, users must type the answer and press enter to reveal</li>
+      <li>Sets card mode to text input, users must type the answer and press enter to reveal</li>
     </ul>
     <li><i>studymode=true</i></li>
     <ul>
       <li>Displays a single card with question and answer, clicking the card cycles through the stack</li>
+      <li>Note: The stack resets, so this mode is essentially infinite. A counter is shown to indicate where you are in the stack.</li>
     </ul>
     <li><i>matchmode=true</i></li>
     <ul>
       <li>Cards are placed face down, click two cards to find matches</li>
     </ul>
-    <li><i>scoremode=true</i>
-    <ul>
-        <li>If textinput=true this will enable a score tracker, cards will be removed from the stack when answered and correct answers will increase score</li>
-    </ul>
     </li>
     <li><i>removecorrect=true</i></li>
     <ul>
       <li>After entering a correct answer, the card will be removed from the stack</li>
+    </ul>
+    <li><i>swapqa=true</i></li>
+    <ul>
+      <li>This will swap the question and answer sides of the cards, question1=answer1 becomes answer1=question1.</li>
+      <li>This only applies to memorize and test yourself modes (click reveal and text input)</li>
     </ul>
     <li><i>hidemenu=true</i></li>
     <ul>
@@ -52,6 +54,11 @@
     <ul>
         <li>Applies a dark theme to the application</li>
     </ul>
+    <li><i>Limit cards</i></li>
+    <ul>
+      <li>Limits the number of cards in the play area, default is 10 but this can be changd in the menu</li>
+      <li>If used in combination with remove correct, it will refill the board with available cards to maintain the specified number.</li>
+      <li>Note: This does not have a URL flag yet, its only an in-app option</li>
   </ul>
 </ul>
 
