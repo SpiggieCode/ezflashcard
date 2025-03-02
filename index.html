@@ -47,10 +47,9 @@
     <label class="toggle-option">
         <input type="checkbox" id="limit-cards-toggle"> Limit Cards
     </label>
-    <label class="toggle-option">
+    <label class="toggle-option" id="limit-cards-container">
         <input type="number" id="limit-cards-number" min="1" value="10" disabled> <!-- Default 10 -->
     </label>
-
     <label class="toggle-option">
         <input type="checkbox" id="swap-question-answers"> Swap Q&A
     </label>
@@ -76,10 +75,10 @@
          <br><h4>Currently supported flags:</h4>
          clickreveal=true, classic flashcard - click the card to flip it over and reveal the answer
          <br>textinput=true, test yourself - you must type the answer from memory
-         <br>scoretracker=true, when used in conjunction with textinput the application will track correct responses and remove cards after answering
          <br>hidemenu=true, hides the menu where option settings are stored - useful for preventing users from making changes
          <br>removecorrect=true, removes cards that are answered correctly, in click reveal mode it removes once they are flipped
          <br>darkmode=true, dark mode
+         <br>swapqa=true, swaps the question and answers, great for studying!
 
         <br><h4>Tips and tricks:</h4>
         1. While you can manually create URLs, it's easier and more efficient to do this programmatically.

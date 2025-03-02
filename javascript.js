@@ -35,13 +35,23 @@ const darkModeToggle = getElement('dark-mode-toggle');
 const studyModeToggle = getElement('study-mode-toggle');
 const limitCardsToggle = getElement('limit-cards-toggle');
 const limitCardsNumber = getElement('limit-cards-number');
+const limitCardsContainer = document.getElementById('limit-cards-container');
 const swapQAToggle = getElement('swap-question-answers'); // Swap Q&A toggle
 
 // Enable or disable the number input based on the toggle
 limitCardsToggle.addEventListener('change', function () {
     limitCardsNumber.disabled = !this.checked;
+    if (this.checked) {
+        limitCardsContainer.style.display = "inline-block"; // Show it
+    } else {
+        limitCardsContainer.style.display = "none"; // Hide it
+    }
     createFlashcards();
 });
+
+// Limit cards has no flag, so its safe to disable the number container by default
+// If I ever want to make a flag for it I will need to add some check to the URL parser
+limitCardsContainer.style.display = "none"
 
 // Re-create flashcards when the limit number changes
 limitCardsNumber.addEventListener('input', function () {
