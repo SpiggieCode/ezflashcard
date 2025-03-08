@@ -255,6 +255,10 @@ body.study-mode .flashcard.fling {
     box-shadow: 0 0 2px #007bff;
 }
 
+.flashcard.selected {
+    border: 2px solid #007bff; /* Highlight selected cards */
+}
+
 .flashcard.correct {
     background-color: #d4edda;
 }
@@ -361,6 +365,7 @@ body.study-mode .flashcard.fling {
     font-size: 20px;
 }
 
+
 /* Dark mode styles for Match Mode */
 body.dark-mode .container.match-mode .flashcard {
     background: #333;
@@ -423,6 +428,10 @@ body.dark-mode #score-container{
 body.dark-mode .flashcard {
     background: #333;
     border-color: #555;
+}
+
+body.dark-mode .flashcard.selected {
+    border: 2px solid #3e9afd;
 }
 
 body.dark-mode #close-url-button {
